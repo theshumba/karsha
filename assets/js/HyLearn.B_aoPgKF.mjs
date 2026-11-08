@@ -104,39 +104,39 @@ html[class*="hy-hold"] .hy-hd.is-ssr .hy-hd-i{animation-play-state:paused}
 @media (max-width:1099px){.hy-wrap{--pad:32px}}
 @media (max-width:699px){.hy-wrap{--pad:18px}}
 @media (prefers-reduced-motion:reduce){.hy-hd-i{translate:0 0!important} .hy-hd.is-ssr .hy-hd-i{animation:none!important} .hy-spark{scale:1!important;rotate:0deg!important;animation:none!important} .hy-um{clip-path:none!important} .hy-um img{scale:1!important;translate:0 0!important}}
-`,pe={site:[{slug:`site`,f1:`Karsha`,f2:`High yield savings · Futures · Trading`,f3:`Karsha gives you high yield savings, swing and day trading, and futures with optional leverage, all in one account.`,f4:`hello@karsha.example`,f5:`/signup`,f6:`/markets`,f7:`$`,f8:`0.10`,f9:`912114`,f10:`12`,f11:`Launchpad: the next token sale opens 14 Oct`,f12:`Illustrative home page. Live prices are in the platform.`,f13:`USD`,f14:`12 markets · Spot and futures · Prices around the clock`,f15:`X:https://x.com, Discord:https://discord.com, GitHub:https://github.com`,img:`../../assets/images/zmppvIW6qorAounAvNKcVqEUdo.webp`,n1:`1`,f16:`60 days`,f17:`12`,f18:`20x`,f19:`24/7`,f20:`102.4`,f21:`98`,f22:`$120M`,f23:`2019`,f24:`Crypto assets are volatile and leverage multiplies losses. You may lose some or all of the money you put in.`,f25:`support@karsha.example`,f26:`App Store:https://apps.apple.com, Google Play:https://play.google.com`,f27:`Earn, trade and grow in one account.`,f28:`All systems normal`,img2:`../../assets/images/w6SYIsfdDh3QQatxG53TeKUqGNc.webp`}],lessons:[{slug:`what-a-price-is`,f1:`What a price actually is`,f2:`Beginner`,f3:`6 min`,f4:`Why the number on the screen is the last trade, not a fact.`,f5:`## The last trade
+`,pe={site:[{slug:`site`,f1:`Karsha`,f2:`High yield savings · Futures · Trading`,f3:`Karsha gives you high yield savings, swing and day trading, and futures with optional leverage, all in one account.`,f4:`hello@karsha.example`,f5:`/signup`,f6:`/markets`,f7:`$`,f8:`0.10`,f9:`912114`,f10:`12`,f11:`Launchpad: the next token sale opens 14 Oct`,f12:`Illustrative home page. Live prices are in the platform.`,f13:`USD`,f14:`12 markets · Spot and futures · Prices around the clock`,f15:`X:https://x.com, Discord:https://discord.com, GitHub:https://github.com`,img:`/karsha/assets/images/zmppvIW6qorAounAvNKcVqEUdo.webp`,n1:`1`,f16:`60 days`,f17:`12`,f18:`20x`,f19:`24/7`,f20:`102.4`,f21:`98`,f22:`$120M`,f23:`2019`,f24:`Crypto assets are volatile and leverage multiplies losses. You may lose some or all of the money you put in.`,f25:`support@karsha.example`,f26:`App Store:https://apps.apple.com, Google Play:https://play.google.com`,f27:`Earn, trade and grow in one account.`,f28:`All systems normal`,img2:`/karsha/assets/images/w6SYIsfdDh3QQatxG53TeKUqGNc.webp`}],lessons:[{slug:`what-a-price-is`,f1:`What a price actually is`,f2:`Beginner`,f3:`6 min`,f4:`Why the number on the screen is the last trade, not a fact.`,f5:`## The last trade
 A price is the last match between a buyer and a seller on one venue. Different venues print different numbers.
 ## Spread and depth
 - The spread is the gap between the best bid and ask
 - Depth is how much you can trade before the price moves
-> On Karsha the price you see is the one you fill at.`,img:`../../assets/images/I61M7pJYv7IwkKsVXvDtMM0oImQ.webp`,n1:`1`},{slug:`keys-seeds-custody`,f1:`Keys, seeds and custody`,f2:`Beginner`,f3:`8 min`,f4:`What it means to hold your own keys, and what it costs you.`,f5:`## Your keys
+> On Karsha the price you see is the one you fill at.`,img:`/karsha/assets/images/I61M7pJYv7IwkKsVXvDtMM0oImQ.webp`,n1:`1`},{slug:`keys-seeds-custody`,f1:`Keys, seeds and custody`,f2:`Beginner`,f3:`8 min`,f4:`What it means to hold your own keys, and what it costs you.`,f5:`## Your keys
 A wallet is a key pair. Whoever holds the private key controls the funds.
 ## Recovery
 - Write the seed phrase down, never in a photo
 - Test recovery before you move real funds
-> Karsha's wallet is self-custody: we cannot move your funds.`,img:`../../assets/images/PBXebV09B1PANuiCqLJ5JE6phU.webp`,n1:`2`},{slug:`order-types`,f1:`Market, limit and stop orders`,f2:`Intermediate`,f3:`7 min`,f4:`Three order types and when each one costs you money.`,f5:`## Market
+> Karsha's wallet is self-custody: we cannot move your funds.`,img:`/karsha/assets/images/PBXebV09B1PANuiCqLJ5JE6phU.webp`,n1:`2`},{slug:`order-types`,f1:`Market, limit and stop orders`,f2:`Intermediate`,f3:`7 min`,f4:`Three order types and when each one costs you money.`,f5:`## Market
 Fills now at the best available price.
 ## Limit
 Fills only at your price or better.
 ## Stop
 Becomes a market order once a trigger is hit.
 - Use limits in thin markets
-- Stops can gap on fast moves`,img:`../../assets/images/VekMwgrCz334RILkMMFH4tOeo.webp`,n1:`3`},{slug:`how-staking-pays`,f1:`How staking pays`,f2:`Intermediate`,f3:`9 min`,f4:`Where staking yield comes from and why it is not interest.`,f5:`## Rewards
+- Stops can gap on fast moves`,img:`/karsha/assets/images/VekMwgrCz334RILkMMFH4tOeo.webp`,n1:`3`},{slug:`how-staking-pays`,f1:`How staking pays`,f2:`Intermediate`,f3:`9 min`,f4:`Where staking yield comes from and why it is not interest.`,f5:`## Rewards
 Proof-of-stake networks pay validators for securing the chain; stakers share that reward.
 ## Risks
 - Slashing for validator misbehaviour
 - Unbonding periods
-> Yield is paid in the asset, so its dollar value moves with the price.`,img:`../../assets/images/kgV4XlQPBLagFNmJRJzLOnoJ4M.webp`,n1:`4`},{slug:`reading-a-token-sale`,f1:`Reading a token sale`,f2:`Advanced`,f3:`11 min`,f4:`Hard caps, vesting, allocations and what a launchpad should show you.`,f5:`## The checklist
+> Yield is paid in the asset, so its dollar value moves with the price.`,img:`/karsha/assets/images/kgV4XlQPBLagFNmJRJzLOnoJ4M.webp`,n1:`4`},{slug:`reading-a-token-sale`,f1:`Reading a token sale`,f2:`Advanced`,f3:`11 min`,f4:`Hard caps, vesting, allocations and what a launchpad should show you.`,f5:`## The checklist
 - Audit report, public
 - Team vest with a cliff
 - Share of supply on sale
 - Listing plan
-> If any of these is missing, the sale is not on Karsha.`,img:`../../assets/images/8WGVP4jcImAhWyiQeJ2mRWrSoc.webp`,n1:`5`},{slug:`fees-you-can-read`,f1:`Fees you can read`,f2:`Beginner`,f3:`5 min`,f4:`Maker, taker, spread and network fees, in one page.`,f5:`## Four fees
+> If any of these is missing, the sale is not on Karsha.`,img:`/karsha/assets/images/8WGVP4jcImAhWyiQeJ2mRWrSoc.webp`,n1:`5`},{slug:`fees-you-can-read`,f1:`Fees you can read`,f2:`Beginner`,f3:`5 min`,f4:`Maker, taker, spread and network fees, in one page.`,f5:`## Four fees
 - Maker: you add liquidity
 - Taker: you remove it
 - Spread: the gap you cross
 - Network: what the chain charges
-> Karsha shows the fee before you sign, every time.`,img:`../../assets/images/kETZzrXEBg68Dt4Rfx3gsKxc4.webp`,n1:`6`}]},me=`HyLearn@cms1`,he=(e,t=`img`)=>String(e&&e[t]||``).split(`?`)[0],ge=`data:image/svg+xml;utf8,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%20400%20500'%20preserveAspectRatio%3D'xMidYMid%20slice'%3E%3Crect%20width%3D'400'%20height%3D'500'%20fill%3D'%232A241D'%2F%3E%3Crect%20x%3D'120'%20y%3D'170'%20width%3D'160'%20height%3D'160'%20rx%3D'8'%20fill%3D'none'%20stroke%3D'%23AEB6C6'%20stroke-width%3D'1.5'%2F%3E%3Crect%20x%3D'100'%20y%3D'150'%20width%3D'200'%20height%3D'200'%20rx%3D'10'%20fill%3D'none'%20stroke%3D'%23C3CAD8'%20stroke-width%3D'1'%20stroke-dasharray%3D'2%206'%2F%3E%3C%2Fsvg%3E`,_e=(e,t=`img`)=>he(e,t)||ge,ve=r===void 0?d:t,ye=`
+> Karsha shows the fee before you sign, every time.`,img:`/karsha/assets/images/kETZzrXEBg68Dt4Rfx3gsKxc4.webp`,n1:`6`}]},me=`HyLearn@cms1`,he=(e,t=`img`)=>String(e&&e[t]||``).split(`?`)[0],ge=`data:image/svg+xml;utf8,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%20400%20500'%20preserveAspectRatio%3D'xMidYMid%20slice'%3E%3Crect%20width%3D'400'%20height%3D'500'%20fill%3D'%232A241D'%2F%3E%3Crect%20x%3D'120'%20y%3D'170'%20width%3D'160'%20height%3D'160'%20rx%3D'8'%20fill%3D'none'%20stroke%3D'%23AEB6C6'%20stroke-width%3D'1.5'%2F%3E%3Crect%20x%3D'100'%20y%3D'150'%20width%3D'200'%20height%3D'200'%20rx%3D'10'%20fill%3D'none'%20stroke%3D'%23C3CAD8'%20stroke-width%3D'1'%20stroke-dasharray%3D'2%206'%2F%3E%3C%2Fsvg%3E`,_e=(e,t=`img`)=>he(e,t)||ge,ve=r===void 0?d:t,ye=`
 .hyle{isolation:isolate;overflow-x:clip}
 .hyle-in{padding-top:clamp(88px,8.5vw,136px);padding-bottom:clamp(88px,8.5vw,136px)}
 .hyle-hd{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr);gap:clamp(28px,5vw,96px);align-items:end;padding-bottom:30px}

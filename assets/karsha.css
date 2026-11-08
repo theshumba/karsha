@@ -1,6 +1,6 @@
 /* Karsha site layer: logo mark and language toggle. Loaded on every page after the template CSS. */
 .hyhd-logo{gap:10px!important}
-.hyhd-ld{width:28px!important;height:28px!important;border-radius:8px!important;box-shadow:none!important;background:url(/assets/karsha-mark.svg) center/contain no-repeat!important}
+.hyhd-ld{width:28px!important;height:28px!important;border-radius:8px!important;box-shadow:none!important;background:url(karsha-mark.svg) center/contain no-repeat!important}
 .kr-lang{position:fixed;right:16px;bottom:16px;z-index:2147483000;display:flex;background:#121419;border:1px solid #26292f;border-radius:999px;padding:3px;font:500 13px/1 Inter,'Noto Sans Devanagari',system-ui,sans-serif;box-shadow:0 8px 30px rgba(0,0,0,.35)}
 .kr-lang button{all:unset;cursor:pointer;padding:8px 14px;border-radius:999px;color:#8a8d96}
 .kr-lang button[aria-pressed=true]{background:#5ce1ff;color:#07080b}
