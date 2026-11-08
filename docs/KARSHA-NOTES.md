@@ -1,6 +1,6 @@
-# Northgate, working notes
+# Karsha, working notes
 
-Working name Northgate (swap with `python3 docs/rebrand.py <Name>` on a clean tree, then
+Brand Karsha (swap with `python3 docs/rebrand.py <Name>` on a clean tree, then
 `docs/copy-map.py`, and change `CFG.brand` plus the title in `platform/index.html`).
 
 ## What exists

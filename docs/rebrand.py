@@ -1,6 +1,6 @@
 """Brand swap. Change BRAND and rerun on a pristine tree (git tag pristine or reset)."""
 import os, re, sys
-BRAND = sys.argv[1] if len(sys.argv) > 1 else "Northgate"
+BRAND = sys.argv[1] if len(sys.argv) > 1 else "Karsha"
 DOMAIN = BRAND.lower() + ".example"
 SKIP = {".git", ".mirror-cache", "verify-shots", "docs"}
 EXT = (".html", ".mjs", ".js", ".json", ".css", ".txt", ".xml")

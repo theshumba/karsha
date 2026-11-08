@@ -1,8 +1,8 @@
-"""Exact-string copy swaps for the Northgate brief (savings, spot, futures, leverage, 60 day notice).
+"""Exact-string copy swaps for the Karsha brief (savings, spot, futures, leverage, 60 day notice).
 Applied to every page and script. Idempotent. Run after rebrand.py.
-Anything not listed here is still template copy: see docs/NORTHGATE-NOTES.md."""
+Anything not listed here is still template copy: see docs/KARSHA-NOTES.md."""
 import os
-B = "Northgate"
+B = "Karsha"
 PAIRS = [
  # hero
  ("The exchange that shows the *real* price.", "Earn, trade and grow in *one* account."),

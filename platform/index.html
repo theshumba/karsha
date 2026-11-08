@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Northgate Platform</title>
+<title>Karsha Platform</title>
 <meta name="robots" content="noindex">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -54,6 +54,14 @@ tr.click{cursor:pointer} tr.click:hover td{background:var(--surface-2)}
 .bar span{display:contents}
 .bar i{display:block;height:100%}
 .note{font-size:12px;color:var(--muted)}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.65);display:flex;align-items:center;justify-content:center;z-index:40;padding:16px}
+.modal .card{width:min(440px,100%);max-height:92vh;overflow:auto}
+.ob{display:grid;grid-template-columns:1fr 1fr 1fr;font-family:var(--font-m);font-size:12px;padding:3px 0;position:relative}
+.ob span:nth-child(2),.ob span:nth-child(3){text-align:right}
+.ob i{position:absolute;right:0;top:0;bottom:0;opacity:.14}
+.step{display:flex;gap:14px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-color:var(--accent)}
+.check{display:flex;gap:10px;align-items:center;padding:6px 0}.check i{width:18px;height:18px;border-radius:50%;border:1px solid var(--line);display:inline-block;flex:none}
+.check.done i{background:var(--up);border-color:var(--up)}
 .fld{display:block} .fld>span{display:block;margin-bottom:6px}
 
 /* auth */
@@ -107,7 +115,7 @@ tr.click{cursor:pointer} tr.click:hover td{background:var(--surface-2)}
 "use strict";
 /* ---------- config: one place to change product terms ---------- */
 const CFG = {
-  brand: "Northgate",
+  brand: "Karsha",
   site: "../",
   simulated: true,            // balances are simulated until a regulated custodian is connected
   feeSpot: 0.001,             // 0.10 %
@@ -146,7 +154,9 @@ let DB = {users: {}, session: null, data: {}};
 try { const s = JSON.parse(localStorage.getItem('ng.v1')); if (s && s.users) DB = s; } catch (e) {}
 const save = () => { try { localStorage.setItem('ng.v1', JSON.stringify(DB)); } catch (e) {} };
 const acct = () => DB.data[DB.session];
-const newAcct = () => ({bal: {USD: 0}, orders: [], pos: [], sav: [], log: [], skew: 0, leveraged: false});
+const kyc = () => acct().kyc || (acct().kyc = {status: 'none'});
+const verified = () => kyc().status === 'verified';
+const newAcct = () => ({bal: {USD: 0}, orders: [], pos: [], sav: [], log: [], skew: 0, leveraged: false, hist: [], kyc: {status: 'none'}});
 const now = () => Date.now() + (acct() ? acct().skew : 0);
 const logit = (type, text) => { const a = acct(); a.log.unshift({t: now(), type, text}); a.log.length = Math.min(a.log.length, 300); };
 
@@ -176,9 +186,34 @@ async function pull() {
       feed.ok = true; feed.src = 'CoinGecko market data';
     } catch (e2) { feed.ok = false; }
   }
-  if (DB.session) engine();
+  if (DB.session) {
+    engine(); await pullBook();
+    const a = acct(); a.hist = a.hist || []; const t0 = Date.now(), e0 = totals().equity;
+    if (e0 > 0 && (!a.hist.length || t0 - a.hist[a.hist.length - 1][0] > 60000)) { a.hist.push([t0, e0]); if (a.hist.length > 2000) a.hist.shift(); save(); }
+    if (kyc().status === 'pending' && Date.now() - kyc().at > 4000) { kyc().status = 'verified'; save(); toast('Identity verified', 'good'); if (route() === 'verify' || route() === 'overview') render(); }
+  }
   tick();
 }
+const BOOK = {sym: null, bids: [], asks: [], trades: []};
+async function pullBook() {
+  const r = route(); if (!(r === 'trade' || r === 'futures')) return; const sy = T.sym;
+  try {
+    const [d, t] = await Promise.all([fetch(`${BN}/depth?symbol=${sy}USDT&limit=8`).then(x => x.json()), fetch(`${BN}/trades?symbol=${sy}USDT&limit=10`).then(x => x.json())]);
+    BOOK.sym = sy; BOOK.bids = d.bids.map(x => [+x[0], +x[1]]); BOOK.asks = d.asks.map(x => [+x[0], +x[1]]).reverse();
+    BOOK.trades = t.slice().reverse().map(x => ({p: +x.price, q: +x.qty, t: x.time, sell: x.isBuyerMaker}));
+  } catch (e) {}
+}
+function bookHtml() {
+  if (BOOK.sym !== T.sym || !BOOK.bids.length) return '<p class="muted">Loading order book...</p>';
+  const mx = Math.max(...BOOK.bids.map(x => x[1]), ...BOOK.asks.map(x => x[1]));
+  const row = (x, c) => `<div class="ob"><span class="${c}">${px(x[0])}</span><span>${qty(x[1])}</span><span class="muted">${usd(x[0] * x[1], 0)}</span><i style="width:${x[1] / mx * 100}%;background:var(--${c})"></i></div>`;
+  return `<div class="ob label"><span>Price</span><span>Size</span><span>Total</span></div>${BOOK.asks.map(x => row(x, 'down')).join('')}<div style="height:6px"></div>${BOOK.bids.map(x => row(x, 'up')).join('')}`;
+}
+function tradesHtml() {
+  if (BOOK.sym !== T.sym || !BOOK.trades.length) return '<p class="muted">Loading trades...</p>';
+  return `<div class="ob label"><span>Price</span><span>Size</span><span>Time</span></div>${BOOK.trades.map(x => `<div class="ob"><span class="${x.sell ? 'down' : 'up'}">${px(x.p)}</span><span>${qty(x.q)}</span><span class="muted">${new Date(x.t).toLocaleTimeString('en-GB')}</span></div>`).join('')}`;
+}
+const bookCard = () => `<div class="grid g2"><div class="card"><h3 style="margin-bottom:8px">Order book</h3>${L(bookHtml)}</div><div class="card"><h3 style="margin-bottom:8px">Recent trades</h3>${L(tradesHtml)}</div></div>`;
 const price = a => a === 'USD' ? 1 : (P[a] ? P[a].last : 0);
 
 /* ---------- accounting ---------- */
@@ -244,6 +279,7 @@ function tick() {
   const tk = $('#tickbar'); if (tk) tk.innerHTML = tickHtml();
   const fd = $('#feed'); if (fd) fd.innerHTML = feedHtml();
   chartTick();
+  if (eqc) { try { eqc.series.setData(histData()); } catch (e) {} }
 }
 const tickHtml = () => ['BTC','ETH','SOL'].map(s => P[s] ? `<span>${s} ${px(P[s].last)} <b class="${cls(P[s].chg)}">${pct(P[s].chg)}</b></span>` : '').join('');
 const feedHtml = () => feed.ok ? `<span class="up">●</span> ${esc(feed.src)}` : `<span class="down">●</span> Market data offline, retrying`;
@@ -251,10 +287,19 @@ const feedHtml = () => feed.ok ? `<span class="up">●</span> ${esc(feed.src)}` 
 /* ---------- routing ---------- */
 const route = () => (location.hash.replace(/^#\/?/, '').split('?')[0]) || 'overview';
 const go = r => { location.hash = '#/' + r; };
-window.addEventListener('hashchange', () => render());
+window.addEventListener('hashchange', () => { render(); pullBook().then(tick); });
 
 /* ---------- chart ---------- */
-let chart = null;
+let chart = null, eqc = null;
+const histData = () => { const out = []; let last = 0; (acct().hist || []).forEach(h => { const t = Math.floor(h[0] / 1000); if (t > last) { out.push({time: t, value: h[1]}); last = t; } }); return out; };
+function mountEq() {
+  const el = $('#eqchart'); if (!el || !window.LightweightCharts) return;
+  const d = histData(); if (d.length < 2) { el.innerHTML = '<p class="muted" style="padding:0 18px 18px">Your equity chart builds as you use the account. Check back in a few minutes.</p>'; el.style.height = 'auto'; return; }
+  const cs = getComputedStyle(document.documentElement), g = n => cs.getPropertyValue(n).trim();
+  const api = LightweightCharts.createChart(el, {autoSize: true, localization: {locale: 'en-GB'}, layout: {background: {type: 'solid', color: g('--surface')}, textColor: g('--muted'), fontFamily: 'IBM Plex Mono, monospace'}, grid: {vertLines: {visible: false}, horzLines: {color: g('--line-soft')}}, rightPriceScale: {borderColor: g('--line')}, timeScale: {borderColor: g('--line'), timeVisible: true}});
+  const series = api.addAreaSeries({lineColor: g('--accent'), topColor: 'rgba(92,225,255,.28)', bottomColor: 'rgba(92,225,255,0)', lineWidth: 2});
+  series.setData(d); api.timeScale().fitContent(); eqc = {api, series};
+}
 const T = {sym: 'BTC', iv: '15m', side: 'buy', type: 'market', fside: 'long', lev: 3};
 async function mountChart() {
   const el = $('#chart'); if (!el || !window.LightweightCharts) return;
@@ -285,7 +330,7 @@ function chartTick() {
 }
 
 /* ---------- views ---------- */
-const NAV = [['overview','Overview'],['markets','Markets'],['trade','Spot trading'],['futures','Futures'],['earn','Savings'],['wallet','Wallet'],['activity','Activity'],['settings','Settings']];
+const NAV = [['overview','Overview'],['markets','Markets'],['trade','Spot trading'],['futures','Futures'],['earn','Savings'],['wallet','Wallet'],['verify','Verification'],['activity','Activity'],['settings','Settings']];
 
 function shell(inner) {
   const r = route();
@@ -312,13 +357,15 @@ function vOverview() {
     ['settings', 'Leveraged account', a.leveraged ? `Active. Up to ${CFG.maxLevLeveraged}x on futures.` : `Unlock up to ${CFG.maxLevLeveraged}x leverage on futures.`]
   ];
   return `<div class="head"><div><div class="label">Total equity</div><div class="big" style="font-size:40px">${L(() => usd(totals().equity))}</div></div>
-    <div class="row"><button class="btn" data-act="addfunds">Add ${usd(CFG.demoFunds, 0)} simulated funds</button></div></div>
+    <div class="row"><button class="btn pri" data-act="deposit">Deposit</button><button class="btn" data-act="withdraw">Withdraw</button></div></div>
+  ${nextStep()}
   <div class="grid g4">
     <div class="card"><div class="label">Cash</div><div class="big">${L(() => usd(totals().cash))}</div></div>
     <div class="card"><div class="label">Spot assets</div><div class="big">${L(() => usd(totals().spot + totals().resv))}</div></div>
     <div class="card"><div class="label">Open futures P&amp;L</div><div class="big">${L(() => { const u = totals().upnl; return `<span class="${cls(u)}">${usd(u)}</span>`; })}</div></div>
     <div class="card"><div class="label">Savings interest earned</div><div class="big">${L(() => usd(totals().earned))}</div></div>
   </div>
+  <div class="card" style="margin-top:14px;padding:0;overflow:hidden"><div style="padding:16px 18px 6px"><div class="label">Equity over time</div></div><div id="eqchart" style="height:220px"></div></div>
   <div class="card" style="margin-top:14px"><div class="label">Allocation</div>
     <div class="bar" style="margin:12px 0">${L(() => { const tt = totals(), tot2 = Math.max(tt.equity, 1e-9); return [[tt.cash,'var(--accent)'],[tt.spot+tt.resv,'var(--up)'],[tt.marg+tt.upnl,'var(--warn)'],[tt.sav,'var(--muted)']].map(([v,c]) => `<i style="width:${Math.max(0,v)/tot2*100}%;background:${c}"></i>`).join(''); })}</div>
     <div class="row wrap">${seg.map(([n, , c]) => `<span class="note"><i style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${c}"></i> ${n}</span>`).join('')}</div></div>
@@ -326,6 +373,15 @@ function vOverview() {
   <div class="grid g4">${cards.map(([k, n, d]) => `<a class="card" href="#/${k}"><h3>${n}</h3><p class="muted" style="margin-top:6px">${d}</p></a>`).join('')}</div>
   <h2 style="margin:26px 0 12px">Open futures positions</h2>${posTable()}
   <h2 style="margin:26px 0 12px">Biggest movers, 24 hours</h2>${moversTable()}`;
+}
+function nextStep() {
+  const a = acct(), funded = a.log.some(l => l.type === 'Deposit'), active = a.sav.length || a.log.some(l => l.type === 'Buy' || l.type === 'Futures');
+  const steps = [[verified(), 'Verify your identity', 'Takes a minute. Needed to withdraw cash and unlock leverage.', 'verify'], [funded, 'Make your first deposit', 'Add funds to start earning or trading.', 'deposit'], [active, 'Put your money to work', 'Open a savings deposit, buy an asset or open a futures position.', 'earn']];
+  const n = steps.findIndex(x => !x[0]); if (n < 0) return '';
+  const st = steps[n];
+  return `<div class="card step" style="margin-bottom:14px"><div><div class="label">Step ${n + 1} of 3</div><h3 style="margin-top:4px">${st[1]}</h3><p class="muted">${st[2]}</p>
+    <div class="row wrap" style="margin-top:8px">${steps.map(x => `<span class="check ${x[0] ? 'done' : ''}"><i></i><span class="note">${x[1]}</span></span>`).join('')}</div></div>
+    ${st[3] === 'deposit' ? '<button class="btn pri" data-act="deposit">Deposit now</button>' : `<a class="btn pri" href="#/${st[3]}">Continue</a>`}</div>`;
 }
 function moversTable() {
   const rows = Object.keys(P).sort((x, y) => Math.abs(P[y].chg) - Math.abs(P[x].chg)).slice(0, 5);
@@ -356,7 +412,7 @@ function vTrade() {
   const open = a.orders.length ? `<table><tr><th>Pair</th><th>Side</th><th class="r">Price</th><th class="r">Amount</th><th></th></tr>${a.orders.map(o => `<tr><td>${o.sym}</td><td class="${o.side === 'buy' ? 'up' : 'down'}">${o.side}</td><td class="r mono">${px(o.price)}</td><td class="r mono">${qty(o.qty)}</td><td class="r"><button class="btn sm" data-act="cancel" data-id="${o.id}">Cancel</button></td></tr>`).join('')}</table>` : '<p class="muted">No open orders.</p>';
   const held = Object.keys(a.bal).filter(k => k !== 'USD' && a.bal[k] > 1e-9);
   return `<div class="head"><div><h1>Spot trading</h1><p class="muted">Swing and day trading at live prices. Fee ${(CFG.feeSpot * 100).toFixed(2)}%.</p></div></div>
-  <div class="trade"><div class="stack">${chartCard()}
+  <div class="trade"><div class="stack">${chartCard()}${bookCard()}
     <div class="card"><h3>Open orders</h3><div class="scroll" style="margin-top:8px">${open}</div></div></div>
   <div class="stack"><form class="card stack" data-form="spot">
     <div class="tabs" style="display:flex"><button type="button" style="flex:1" class="buyt ${isBuy ? 'on' : ''}" data-act="side" data-v="buy">Buy</button><button type="button" style="flex:1" class="sellt ${!isBuy ? 'on' : ''}" data-act="side" data-v="sell">Sell</button></div>
@@ -382,7 +438,7 @@ function vFutures() {
   const ml = maxLev(); if (T.lev > ml) T.lev = ml;
   const long = T.fside === 'long';
   return `<div class="head"><div><h1>Futures</h1><p class="muted">Long or short with leverage. Fee ${(CFG.feeFut * 100).toFixed(2)}% each side. Your limit is ${ml}x${acct().leveraged ? '' : ', raise it in Settings with a leveraged account'}.</p></div></div>
-  <div class="trade"><div class="stack">${chartCard()}<h3>Open positions</h3>${posTable()}</div>
+  <div class="trade"><div class="stack">${chartCard()}<h3>Open positions</h3>${posTable()}${bookCard()}</div>
   <form class="card stack" data-form="fut">
     <div class="tabs" style="display:flex"><button type="button" style="flex:1" class="buyt ${long ? 'on' : ''}" data-act="fside" data-v="long">Long</button><button type="button" style="flex:1" class="sellt ${!long ? 'on' : ''}" data-act="fside" data-v="short">Short</button></div>
     <label class="fld"><span class="label">Margin (USD)</span><input name="margin" inputmode="decimal" placeholder="0.00" autocomplete="off"></label>
@@ -399,6 +455,7 @@ function vEarn() {
     <div class="row between"><h3>${p.name}</h3><span class="pill">${p.asset}</span></div><div class="apy">${p.apy.toFixed(1)}% <span class="note" style="font-family:var(--font-b)">per year</span></div>
     <p class="muted">${p.blurb}</p><p class="note">Minimum ${p.asset === 'USD' ? usd(p.min, 0) : p.min + ' ' + p.asset}. Withdrawal needs ${CFG.noticeDays} days notice. Interest accrues daily.</p>
     <input name="amt" inputmode="decimal" placeholder="Amount in ${p.asset}" autocomplete="off">
+    <div class="note calc">Enter an amount to see what it earns.</div>
     <div class="note">Available: ${L(() => qty(a.bal[p.asset] || 0) + ' ' + p.asset)}</div>
     <button class="btn pri">Deposit</button></form>`).join('');
   const rows = a.sav.length ? `<div class="card scroll"><table><tr><th>Product</th><th class="r">Deposited</th><th class="r">Value now</th><th>Opened</th><th>Status</th><th></th></tr>${a.sav.map(s => {
@@ -413,12 +470,39 @@ function vEarn() {
 function vWallet() {
   const a = acct(), keys = Object.keys(a.bal).filter(k => k === 'USD' || a.bal[k] > 1e-9);
   return `<div class="head"><div><h1>Wallet</h1><p class="muted">Everything you hold, valued at live prices.</p></div>
-    <div class="row"><button class="btn pri" data-act="addfunds">Add ${usd(CFG.demoFunds, 0)} simulated funds</button><button class="btn" data-act="withdrawcash">Withdraw cash</button></div></div>
+    <div class="row"><button class="btn pri" data-act="deposit">Deposit</button><button class="btn" data-act="withdraw">Withdraw</button></div></div>
   <div class="card scroll"><table><tr><th>Asset</th><th class="r">Balance</th><th class="r">Price</th><th class="r">Value</th></tr>
   ${keys.map(k => `<tr><td><b>${k}</b> <span class="muted">${CFG.names[k] || ''}</span></td><td class="r mono">${L(() => k === 'USD' ? usd(a.bal.USD || 0) : qty(a.bal[k] || 0))}</td><td class="r mono">${k === 'USD' ? '' : L(() => px(price(k)))}</td><td class="r mono">${L(() => usd((a.bal[k] || 0) * price(k)))}</td></tr>`).join('')}</table></div>
   <p class="note" style="margin-top:12px">${CFG.simulated ? 'Deposits and withdrawals here are simulated. Real funding turns on when a regulated custodian is connected.' : ''}</p>`;
 }
 
+function vVerify() {
+  const k = kyc();
+  const head = `<div class="head"><div><h1>Verification</h1><p class="muted">Verified accounts can withdraw cash and switch on a leveraged account.</p></div></div>`;
+  if (k.status === 'verified') return head + `<div class="card stack"><div class="row"><span class="pill up">Verified</span></div><div class="row between"><span class="muted">Name</span><span>${esc(k.name || '')}</span></div><div class="row between"><span class="muted">Country</span><span>${esc(k.country || '')}</span></div><div class="row between"><span class="muted">Document</span><span>${esc(k.idType || '')}</span></div></div>`;
+  if (k.status === 'pending') return head + `<div class="card"><h3>Checking your details</h3><p class="muted" style="margin-top:6px">This usually takes a few seconds.</p></div>`;
+  return head + `<form class="card stack" data-form="kyc" style="max-width:560px">
+    <label class="fld"><span class="label">Full legal name</span><input name="name" autocomplete="name"></label>
+    <div class="grid g2"><label class="fld"><span class="label">Date of birth</span><input name="dob" type="date"></label><label class="fld"><span class="label">Country of residence</span><input name="country" autocomplete="country-name"></label></div>
+    <label class="fld"><span class="label">Home address</span><input name="addr" autocomplete="street-address"></label>
+    <div class="grid g2"><label class="fld"><span class="label">ID document</span><select name="idt"><option>Passport</option><option>Driving licence</option><option>National ID card</option></select></label><label class="fld"><span class="label">Photo of document</span><input name="file" type="file" accept="image/*,.pdf"></label></div>
+    <p class="note">The document stays on this device in this version.</p><div class="err" id="err"></div><button class="btn pri">Submit for verification</button></form>`;
+}
+function openModal(html) { closeModal(); const m = document.createElement('div'); m.className = 'modal'; m.id = 'modal'; m.innerHTML = `<div class="card stack">${html}</div>`; m.addEventListener('click', e => { if (e.target === m) closeModal(); }); document.body.appendChild(m); const i = m.querySelector('input'); if (i) i.focus(); }
+function closeModal() { const m = $('#modal'); if (m) m.remove(); }
+const assetOpts = (only) => (only || ['USD', ...CFG.pairs]).map(k => `<option>${k}</option>`).join('');
+function depositModal() { openModal(`<div class="row between"><h2>Deposit</h2><button class="btn sm" data-act="closemodal">Close</button></div>
+  <form class="stack" data-form="deposit"><label class="fld"><span class="label">Method</span><select name="m"><option>Bank transfer</option><option>Debit card</option><option>Crypto transfer</option></select></label>
+  <div class="grid g2"><label class="fld"><span class="label">Asset</span><select name="asset">${assetOpts()}</select></label><label class="fld"><span class="label">Amount</span><input name="amt" inputmode="decimal" placeholder="${CFG.demoFunds}" autocomplete="off"></label></div>
+  <p class="note">${CFG.simulated ? 'Simulated: the amount is credited instantly and no real money moves.' : ''}</p><div class="err" id="err"></div><button class="btn pri">Deposit</button></form>`); }
+function withdrawModal() {
+  if (!verified()) { toast('Verify your identity before withdrawing.', 'bad'); go('verify'); return; }
+  const a = acct(), have = Object.keys(a.bal).filter(k => (a.bal[k] || 0) > 1e-9);
+  if (!have.length) return toast('Nothing to withdraw yet.', 'bad');
+  openModal(`<div class="row between"><h2>Withdraw</h2><button class="btn sm" data-act="closemodal">Close</button></div>
+  <form class="stack" data-form="withdraw"><div class="grid g2"><label class="fld"><span class="label">Asset</span><select name="asset">${assetOpts(have)}</select></label><label class="fld"><span class="label">Amount</span><input name="amt" inputmode="decimal" autocomplete="off"></label></div>
+  <label class="fld"><span class="label">Send to</span><input name="dest" placeholder="Bank account or wallet address" autocomplete="off"></label>
+  <p class="note">Savings are separate: they need ${CFG.noticeDays} days notice from the Savings page.</p><div class="err" id="err"></div><button class="btn pri">Withdraw</button></form>`); }
 function vActivity() {
   const a = acct();
   return `<div class="head"><div><h1>Activity</h1><p class="muted">Every trade, fill, deposit and withdrawal.</p></div></div>
@@ -470,10 +554,11 @@ function render(soft) {
     app.innerHTML = vAuth(r); return;
   }
   if (r === 'login' || r === 'signup') { go('overview'); return; }
-  const views = {overview: vOverview, markets: vMarkets, trade: vTrade, futures: vFutures, earn: vEarn, wallet: vWallet, activity: vActivity, settings: vSettings};
+  const views = {overview: vOverview, markets: vMarkets, trade: vTrade, futures: vFutures, earn: vEarn, wallet: vWallet, verify: vVerify, activity: vActivity, settings: vSettings};
   const fn = views[r] || vOverview;
   if (soft) { const f = document.activeElement; if (f && /INPUT|SELECT/.test(f.tagName)) return; }
   app.innerHTML = shell(fn());
+  eqc = null; if (r === 'overview') mountEq();
   if (r === 'trade' || r === 'futures') mountChart(); else chart = null;
   if (r === 'trade' || r === 'futures') window.scrollTo(0, 0);
 }
@@ -494,13 +579,9 @@ document.addEventListener('click', e => {
     const max = isBuy ? (a.bal.USD || 0) : (a.bal[T.sym] || 0) * price(T.sym);
     f.amt.value = (Math.floor(max * (v / 100) * 100) / 100).toFixed(2); return;
   }
-  if (act === 'addfunds') { a.bal.USD = (a.bal.USD || 0) + CFG.demoFunds; logit('Deposit', `Simulated deposit of ${usd(CFG.demoFunds)}`); save(); toast(`${usd(CFG.demoFunds)} simulated funds added`, 'good'); render(); return; }
-  if (act === 'withdrawcash') {
-    const s = prompt('Amount to withdraw (USD)'); const n = num(s);
-    if (!isFinite(n) || n <= 0) return;
-    if (n > (a.bal.USD || 0)) return toast('You do not have that much cash.', 'bad');
-    a.bal.USD -= n; logit('Withdrawal', `Simulated withdrawal of ${usd(n)}`); save(); toast('Withdrawal recorded', 'good'); render(); return;
-  }
+  if (act === 'deposit' || act === 'addfunds') { depositModal(); return; }
+  if (act === 'withdraw' || act === 'withdrawcash') { withdrawModal(); return; }
+  if (act === 'closemodal') { closeModal(); return; }
   if (act === 'cancel') {
     const o = a.orders.find(x => x.id === el.dataset.id); if (!o) return;
     if (o.side === 'buy') a.bal.USD = (a.bal.USD || 0) + o.reserve; else a.bal[o.sym] = (a.bal[o.sym] || 0) + o.qty;
@@ -521,6 +602,7 @@ document.addEventListener('click', e => {
     logit('Savings', `Withdrew ${qty(v)} ${s.asset} (includes ${qty(v - s.principal)} interest)`); save(); toast('Savings withdrawn to your wallet', 'good'); render(); return;
   }
   if (act === 'togglelev') {
+    if (!a.leveraged && !verified()) { toast('Verify your identity first to unlock leverage.', 'bad'); go('verify'); return; }
     if (!a.leveraged && !confirm(`Leverage up to ${CFG.maxLevLeveraged}x can lose your whole margin quickly. Enable it?`)) return;
     if (a.leveraged && a.pos.some(p => p.lev > CFG.maxLevStandard)) return toast(`Close positions above ${CFG.maxLevStandard}x first.`, 'bad');
     a.leveraged = !a.leveraged; logit('Account', a.leveraged ? 'Leveraged account enabled' : 'Leveraged account disabled'); save(); render(); return;
@@ -535,7 +617,7 @@ document.addEventListener('click', e => {
 
 document.addEventListener('change', e => {
   const b = e.target.dataset && e.target.dataset.bind;
-  if (b === 'sym') { T.sym = e.target.value; render(); }
+  if (b === 'sym') { T.sym = e.target.value; render(); pullBook().then(tick); }
 });
 document.addEventListener('input', e => {
   const f = e.target.closest && e.target.closest('form[data-form="fut"]'); if (!f) return;
@@ -544,6 +626,11 @@ document.addEventListener('input', e => {
   if (pv && m > 0 && p) { const size = m * T.lev / p; pv.innerHTML = `Position ${usd(m * T.lev)} (${qty(size)} ${T.sym}) · liquidation near <b class="warn">${px(liqPx(T.fside, p, T.lev))}</b> · fee ${usd(m * T.lev * CFG.feeFut)}`; }
 });
 
+document.addEventListener('input', e => {
+  const f = e.target.closest && e.target.closest('form[data-form="sav"]'); if (!f) return;
+  const p = CFG.products.find(x => x.id === f.dataset.pid), n = num(f.amt.value), c = f.querySelector('.calc'); if (!c) return;
+  c.textContent = n > 0 ? `About ${qty(n * p.apy / 100)} ${p.asset} a year, ${qty(n * p.apy / 100 * CFG.noticeDays / 365)} ${p.asset} over a ${CFG.noticeDays} day notice period.` : 'Enter an amount to see what it earns.';
+});
 document.addEventListener('submit', async e => {
   const f = e.target.closest('form[data-form]'); if (!f) return; e.preventDefault();
   const kind = f.dataset.form, err = $('#err');
@@ -564,7 +651,26 @@ document.addEventListener('submit', async e => {
     if (!u || (await hashPw(pw, u.salt)) !== u.hash) return bad('Email or password is not right.');
     DB.session = email; save(); go('overview'); render(); return;
   }
-  const a = acct();
+  const a = acct(), er = m => { const x = $('#err'); if (x) x.textContent = m; };
+  if (kind === 'deposit') {
+    const n = num(f.amt.value), as = f.asset.value; if (!(n > 0)) return er('Enter an amount.');
+    a.bal[as] = (a.bal[as] || 0) + n; logit('Deposit', `Simulated ${f.m.value.toLowerCase()} deposit of ${as === 'USD' ? usd(n) : qty(n) + ' ' + as}`);
+    save(); closeModal(); toast('Deposit credited', 'good'); render(); return;
+  }
+  if (kind === 'withdraw') {
+    const n = num(f.amt.value), as = f.asset.value; if (!(n > 0)) return er('Enter an amount.');
+    if (!f.dest.value.trim()) return er('Enter where to send it.');
+    if (n > (a.bal[as] || 0) + 1e-9) return er('You do not have that much.');
+    a.bal[as] -= n; logit('Withdrawal', `Simulated withdrawal of ${as === 'USD' ? usd(n) : qty(n) + ' ' + as}`);
+    save(); closeModal(); toast('Withdrawal recorded', 'good'); render(); return;
+  }
+  if (kind === 'kyc') {
+    const v = n => f[n].value.trim();
+    if (!v('name') || !v('dob') || !v('country') || !v('addr')) return er('Please fill in every field.');
+    const born = new Date(v('dob')); if (!(Date.now() - born.getTime() > 18 * YEAR)) return er('You must be 18 or over.');
+    Object.assign(kyc(), {status: 'pending', at: Date.now(), name: v('name'), country: v('country'), idType: f.idt.value});
+    logit('Verification', 'Submitted for verification'); save(); render(); setTimeout(pull, 4300); return;
+  }
   if (kind === 'spot') {
     const amt = num(f.amt.value), m = price(T.sym), isBuy = T.side === 'buy';
     if (!(amt > 0)) return toast('Enter an amount.', 'bad');
