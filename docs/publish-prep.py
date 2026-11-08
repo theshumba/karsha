@@ -1,3 +1,4 @@
+"""RETIRED. This replaced pages with stubs; the full site was restored on request. Kept for reference only."""
 """Prepares the tree for publishing. Idempotent.
  - pages that asserted facts that are not true of Karsha become honest "coming soon" stubs
  - every kept page gets the Karsha stylesheet, the language toggle, a favicon and noindex

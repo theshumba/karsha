@@ -8,10 +8,6 @@
 html[lang=hi]{--hy-font-d:'Noto Sans Devanagari','Archivo';--hy-font-b:'Noto Sans Devanagari','Inter';--hy-font-m:'Noto Sans Devanagari','IBM Plex Mono';--font-d:'Noto Sans Devanagari','Archivo';--font-b:'Noto Sans Devanagari','Inter';--font-m:'Noto Sans Devanagari','IBM Plex Mono'}
 @media (max-width:980px){.kr-lang{bottom:74px}}
 
-/* Home: only what is true of Karsha stays. Template sections that asserted invented facts are hidden. */
-.hytk,.hymk,.hywl,.hyer,.hylp,.hysc,.hyfe,.hyvo,.hyle,.hyfq,
-.hyh-price,.hyh-meta,.hyh-seg,.hyh-tape,.hyh-foot,.hyh-card,.hyhd-px,.hyft-st,.hyft-live,.hyft-news,
-a[href*="apps.apple.com"],a[href*="play.google.com"],a[href="https://x.com"],a[href="https://discord.com"],a[href="https://github.com"]{display:none!important}
 /* stub pages */
 .kr-stub{min-height:100vh;display:flex;flex-direction:column;background:#0b0c10;color:#eceae2;font:16px/1.5 Inter,'Noto Sans Devanagari',system-ui,sans-serif}
 .kr-stub header{padding:22px 28px}
