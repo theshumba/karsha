@@ -33,6 +33,8 @@ PAIRS = [
  ("Real price.|*Your* keys.", "Clear terms.|*Your* account."),
  (" shows the price the market is paying, not a spread dressed up as one.", " shows you the live market price, the fee and the withdrawal notice before you commit."),
  ("assets, hold your own keys and earn on what you keep.", "assets, earn on your savings, and open futures when you are ready."),
+ ("Prices refresh every second", "Illustrative home page. Live prices are in the platform."),
+ ("200+ assets · Proof of reserves · 24/7 support", "12 markets · Spot and futures · Prices around the clock"),
  # earn: the 60 day clause
  ("Withdraw any time, no notice", "60 days notice to withdraw"),
  ("Backed by over-collateralised lending", "Interest accrues daily"),

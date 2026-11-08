@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Karsha Platform</title>
 <meta name="robots" content="noindex">
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../assets/karsha.css">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
@@ -54,6 +56,12 @@ tr.click{cursor:pointer} tr.click:hover td{background:var(--surface-2)}
 .bar span{display:contents}
 .bar i{display:block;height:100%}
 .note{font-size:12px;color:var(--muted)}
+#tour{position:fixed;inset:0;z-index:60;pointer-events:none}
+#tour .hole{position:fixed;border-radius:12px;box-shadow:0 0 0 9999px rgba(3,4,6,.72);border:2px solid var(--accent);transition:all .25s}
+#tour .tip{position:fixed;pointer-events:auto;width:min(360px,calc(100vw - 24px));background:var(--surface-2);border:1px solid var(--accent);border-radius:14px;padding:16px;box-shadow:0 16px 60px rgba(0,0,0,.6)}
+#tour .tip h3{margin:4px 0 6px}
+#tour .tip .row{margin-top:14px}
+@media (max-width:600px){#tour .tip{left:12px!important;right:12px;top:10px!important;bottom:auto;width:auto}}
 .modal{position:fixed;inset:0;background:rgba(0,0,0,.65);display:flex;align-items:center;justify-content:center;z-index:40;padding:16px}
 .modal .card{width:min(440px,100%);max-height:92vh;overflow:auto}
 .ob{display:grid;grid-template-columns:1fr 1fr 1fr;font-family:var(--font-m);font-size:12px;padding:3px 0;position:relative}
@@ -70,7 +78,7 @@ tr.click{cursor:pointer} tr.click:hover td{background:var(--surface-2)}
 .auth .form{display:flex;align-items:center;justify-content:center;padding:32px}
 .auth .box{width:100%;max-width:380px}
 .logo{font-family:var(--font-d);font-weight:700;font-size:20px;letter-spacing:-.02em;display:flex;align-items:center;gap:10px}
-.logo b{width:26px;height:26px;border-radius:8px;background:var(--accent);display:inline-block}
+.logo img{display:block;border-radius:8px}
 .bullets{display:grid;gap:14px;margin-top:28px}
 .bullets div{display:flex;gap:12px} .bullets i{width:6px;height:6px;border-radius:50%;background:var(--accent);margin-top:8px;flex:none}
 .err{color:var(--down);font-size:13px;min-height:18px}
@@ -111,6 +119,7 @@ tr.click{cursor:pointer} tr.click:hover td{background:var(--surface-2)}
 <body>
 <div id="app"></div>
 <script src="lwc.js"></script>
+<script src="../assets/karsha-i18n.js"></script>
 <script>
 "use strict";
 /* ---------- config: one place to change product terms ---------- */
@@ -145,8 +154,10 @@ const pct = n => (n >= 0 ? '+' : '') + n.toFixed(2) + '%';
 const cls = n => n >= 0 ? 'up' : 'down';
 const pxd = v => v >= 100 ? 2 : v >= 1 ? 4 : 6;
 const px = v => usd(v, pxd(v));
-const fdate = t => new Date(t).toLocaleDateString('en-GB', {day:'numeric', month:'short', year:'numeric'});
-const ftime = t => new Date(t).toLocaleString('en-GB', {day:'numeric', month:'short', hour:'2-digit', minute:'2-digit'});
+const LOC = () => (window.karshaLang && karshaLang.get() === 'hi') ? 'hi-IN' : 'en-GB';
+const K = s => (window.karshaLang ? karshaLang.tr(s) : s);
+const fdate = t => new Date(t).toLocaleDateString(LOC(), {day:'numeric', month:'short', year:'numeric'});
+const ftime = t => new Date(t).toLocaleString(LOC(), {day:'numeric', month:'short', hour:'2-digit', minute:'2-digit'});
 const uid = () => Math.random().toString(36).slice(2, 9);
 
 /* ---------- storage ---------- */
@@ -335,13 +346,13 @@ const NAV = [['overview','Overview'],['markets','Markets'],['trade','Spot tradin
 function shell(inner) {
   const r = route();
   return `<div class="shell">
-  <nav class="nav"><a class="logo" href="${CFG.site}"><b></b>${esc(CFG.brand)}</a>
+  <nav class="nav"><a class="logo" href="${CFG.site}"><img src="../assets/karsha-mark.svg" width="28" height="28" alt="">${esc(CFG.brand)}</a>
     ${NAV.map(([k, n]) => `<a href="#/${k}" class="${r === k ? 'on' : ''}">${n}</a>`).join('')}
     <div class="sp"></div><a href="#" data-act="logout">Log out</a></nav>
   <div class="main">
     ${CFG.simulated ? `<div class="sim"><b>Simulated balances.</b> No real money moves in this account. Prices are live.</div>` : ''}
     <div class="top"><div class="tick" id="tickbar">${tickHtml()}</div>
-      <div class="row"><span class="note" id="feed">${feedHtml()}</span><span class="pill">${esc(DB.users[DB.session].name)}</span></div></div>
+      <div class="row"><button class="btn sm" data-act="tour">Guide</button><span class="note" id="feed">${feedHtml()}</span><span class="pill">${esc(DB.users[DB.session].name)}</span></div></div>
     <div class="page">${inner}</div>
   </div></div>`;
 }
@@ -526,7 +537,7 @@ function vSettings() {
 
 function vAuth(mode) {
   const su = mode === 'signup';
-  return `<div class="auth"><div class="side"><a class="logo" href="${CFG.site}"><b></b>${esc(CFG.brand)}</a>
+  return `<div class="auth"><div class="side"><a class="logo" href="${CFG.site}"><img src="../assets/karsha-mark.svg" width="28" height="28" alt="">${esc(CFG.brand)}</a>
     <div><h1 style="font-size:34px;max-width:420px">Savings, spot and futures in one account.</h1>
       <div class="bullets"><div><i></i><p>High yield savings, paid daily, with ${CFG.noticeDays} days notice to withdraw.</p></div>
       <div><i></i><p>Swing and day trading on 12 major assets at live prices.</p></div>
@@ -561,6 +572,7 @@ function render(soft) {
   eqc = null; if (r === 'overview') mountEq();
   if (r === 'trade' || r === 'futures') mountChart(); else chart = null;
   if (r === 'trade' || r === 'futures') window.scrollTo(0, 0);
+  try { if (!tour && !localStorage.getItem('karsha.tour.' + DB.session) && !window.__tourAsked) { window.__tourAsked = true; setTimeout(tourStart, 900); } } catch (e) {}
 }
 
 /* ---------- actions ---------- */
@@ -569,6 +581,10 @@ document.addEventListener('click', e => {
   const el = e.target.closest('[data-act]'); if (!el) return;
   const act = el.dataset.act, v = el.dataset.v, a = DB.session ? acct() : null;
   if (act === 'logout') { e.preventDefault(); DB.session = null; save(); go('login'); render(); return; }
+  if (act === 'tour') { tourStart(); return; }
+  if (act === 'tourskip') { tourEnd(); return; }
+  if (act === 'tourback') { tour.i = Math.max(0, tour.i - 1); tourGo(); return; }
+  if (act === 'tournext') { if (tour.i >= TOUR.length - 1) { tourEnd(); go('overview'); } else { tour.i++; tourGo(); } return; }
   if (act === 'iv') { T.iv = v; render(); return; }
   if (act === 'side') { T.side = v; render(); return; }
   if (act === 'fside') { T.fside = v; render(); return; }
@@ -593,7 +609,7 @@ document.addEventListener('click', e => {
   }
   if (act === 'notice') {
     const s = a.sav.find(x => x.id === el.dataset.id); if (!s) return;
-    if (!confirm(`Request withdrawal? Your funds stay locked and keep earning for ${CFG.noticeDays} days, then become available.`)) return;
+    if (!confirm(K(`Request withdrawal? Your funds stay locked and keep earning for ${CFG.noticeDays} days, then become available.`))) return;
     s.release = now() + CFG.noticeDays * DAY; logit('Savings', `Withdrawal notice given. Funds release ${fdate(s.release)}.`); save(); render(); return;
   }
   if (act === 'release') {
@@ -603,7 +619,7 @@ document.addEventListener('click', e => {
   }
   if (act === 'togglelev') {
     if (!a.leveraged && !verified()) { toast('Verify your identity first to unlock leverage.', 'bad'); go('verify'); return; }
-    if (!a.leveraged && !confirm(`Leverage up to ${CFG.maxLevLeveraged}x can lose your whole margin quickly. Enable it?`)) return;
+    if (!a.leveraged && !confirm(K(`Leverage up to ${CFG.maxLevLeveraged}x can lose your whole margin quickly. Enable it?`))) return;
     if (a.leveraged && a.pos.some(p => p.lev > CFG.maxLevStandard)) return toast(`Close positions above ${CFG.maxLevStandard}x first.`, 'bad');
     a.leveraged = !a.leveraged; logit('Account', a.leveraged ? 'Leveraged account enabled' : 'Leveraged account disabled'); save(); render(); return;
   }
@@ -612,7 +628,7 @@ document.addEventListener('click', e => {
     const blob = new Blob([JSON.stringify({user: DB.users[DB.session].name, email: DB.session, data: a}, null, 2)], {type: 'application/json'});
     const l = document.createElement('a'); l.href = URL.createObjectURL(blob); l.download = 'my-data.json'; l.click(); return;
   }
-  if (act === 'reset') { if (!confirm('Reset this account to empty? This cannot be undone.')) return; DB.data[DB.session] = newAcct(); save(); render(); return; }
+  if (act === 'reset') { if (!confirm(K('Reset this account to empty? This cannot be undone.'))) return; DB.data[DB.session] = newAcct(); save(); render(); return; }
 });
 
 document.addEventListener('change', e => {
@@ -726,10 +742,53 @@ document.addEventListener('submit', async e => {
   }
 });
 
+/* ---------- guided tour, English and Hindi ---------- */
+const TOUR = [
+  {r: 'overview', sel: '.big', en: ['Your account at a glance', 'Total equity is everything you hold: cash, assets, futures and savings, valued at live prices.'], hi: ['आपका खाता एक नज़र में', 'कुल इक्विटी वह सब कुछ है जो आपके पास है: नकद, एसेट, फ्यूचर्स और बचत, लाइव कीमतों पर।']},
+  {r: 'overview', sel: '.step', en: ['Your next step', 'We always show the one thing to do next: verify, deposit, then put your money to work.'], hi: ['आपका अगला कदम', 'हम हमेशा अगला एक काम दिखाते हैं: वेरीफ़ाई करें, जमा करें, फिर अपना पैसा काम पर लगाएँ।']},
+  {r: 'markets', sel: '.card table', en: ['Markets', 'Live prices for 12 major assets. Click any row to trade it.'], hi: ['बाज़ार', '12 प्रमुख एसेट की लाइव कीमतें। ट्रेड करने के लिए किसी भी पंक्ति पर क्लिक करें।']},
+  {r: 'trade', sel: '#chart', en: ['Chart and order book', 'Watch the price in candles and change the time range above the chart. The order book below shows who is buying and selling right now.'], hi: ['चार्ट और ऑर्डर बुक', 'कीमत को कैंडल में देखें और चार्ट के ऊपर समय सीमा बदलें। नीचे की ऑर्डर बुक दिखाती है कि अभी कौन खरीद और बेच रहा है।']},
+  {r: 'trade', sel: 'form[data-form=spot]', en: ['Buy and sell', 'Choose Buy or Sell, Market or Limit, enter an amount in dollars and confirm. A market order fills at once. A limit order waits for your price.'], hi: ['खरीदें और बेचें', 'खरीदें या बेचें, मार्केट या लिमिट चुनें, डॉलर में राशि डालें और पुष्टि करें। मार्केट ऑर्डर तुरंत पूरा होता है। लिमिट ऑर्डर आपकी कीमत का इंतज़ार करता है।']},
+  {r: 'futures', sel: 'form[data-form=fut]', en: ['Futures', 'Go long if you expect the price to rise, short if you expect it to fall. Leverage multiplies gains and losses. The liquidation price is where you would lose your margin.'], hi: ['फ्यूचर्स', 'कीमत बढ़ने की उम्मीद हो तो लॉन्ग, गिरने की उम्मीद हो तो शॉर्ट करें। लीवरेज लाभ और हानि दोनों को बढ़ाता है। लिक्विडेशन कीमत वह है जहाँ आप अपना मार्जिन खो देंगे।']},
+  {r: 'earn', sel: 'form[data-form=sav]', en: ['Savings', 'Deposit to earn interest every day. To take money out you give ' + CFG.noticeDays + ' days notice, and interest keeps building until then.'], hi: ['बचत', 'रोज़ ब्याज कमाने के लिए जमा करें। पैसा निकालने के लिए ' + CFG.noticeDays + ' दिन का नोटिस देना होता है, और तब तक ब्याज बनता रहता है।']},
+  {r: 'wallet', sel: '.head button.pri', en: ['Deposit and withdraw', 'Add money here, or take it out once your identity is verified.'], hi: ['जमा और निकासी', 'यहाँ पैसा जमा करें, या पहचान सत्यापित होने के बाद निकालें।']},
+  {r: 'verify', sel: '.head', en: ['Verification', 'Verify your identity once. It unlocks withdrawals and leveraged accounts.'], hi: ['सत्यापन', 'अपनी पहचान एक बार सत्यापित करें। इससे निकासी और लीवरेज खाते खुलते हैं।']},
+  {r: 'settings', sel: 'button[data-act=togglelev]', en: ['Leveraged account', 'Raise your futures limit from ' + CFG.maxLevStandard + 'x to ' + CFG.maxLevLeveraged + 'x. Only use this if you understand that you can lose your whole margin quickly.'], hi: ['लीवरेज खाता', 'फ्यूचर्स की सीमा ' + CFG.maxLevStandard + 'x से ' + CFG.maxLevLeveraged + 'x करें। इसे तभी इस्तेमाल करें जब आप समझते हों कि पूरा मार्जिन जल्दी खो सकता है।']},
+  {r: 'overview', sel: null, en: ['You are ready', 'Open this guide again any time with the Guide button at the top.'], hi: ['आप तैयार हैं', 'इस गाइड को कभी भी ऊपर के गाइड बटन से फिर खोलें।']}
+];
+const TL = {en: {step: (i, n) => `Step ${i} of ${n}`, back: 'Back', next: 'Next', done: 'Finish', skip: 'Skip guide'}, hi: {step: (i, n) => `चरण ${i} / ${n}`, back: 'पीछे', next: 'आगे', done: 'समाप्त', skip: 'गाइड छोड़ें'}};
+let tour = null;
+const tl = () => (window.karshaLang && karshaLang.get() === 'hi') ? 'hi' : 'en';
+function tourStart() { if (!DB.session) return; tour = {i: 0}; tourGo(); }
+function tourEnd() { tour = null; const t = $('#tour'); if (t) t.remove(); try { localStorage.setItem('karsha.tour.' + DB.session, '1'); } catch (e) {} }
+function tourGo() {
+  if (!tour) return; const st = TOUR[tour.i];
+  if (route() !== st.r) { go(st.r); setTimeout(tourPaint, 450); } else tourPaint();
+}
+function tourPaint() {
+  if (!tour) return; const st = TOUR[tour.i], lg = tl(), tx = st[lg], L2 = TL[lg];
+  let t = $('#tour'); if (!t) { t = document.createElement('div'); t.id = 'tour'; t.setAttribute('data-noi18n', ''); document.body.appendChild(t); }
+  const el = st.sel ? document.querySelector(st.sel) : null;
+  if (el) el.scrollIntoView({block: 'center'});
+  const r = el ? el.getBoundingClientRect() : null, pad = 8;
+  const hole = r ? `<div class="hole" style="left:${r.left - pad}px;top:${r.top - pad}px;width:${r.width + pad * 2}px;height:${r.height + pad * 2}px"></div>` : '<div class="hole" style="left:50%;top:50%;width:0;height:0"></div>';
+  const last = tour.i === TOUR.length - 1;
+  t.innerHTML = hole + `<div class="tip" role="dialog" aria-live="polite"><div class="label">${L2.step(tour.i + 1, TOUR.length)}</div><h3>${tx[0]}</h3><p class="muted">${tx[1]}</p>
+    <div class="row between"><button class="btn sm" data-act="tourskip">${L2.skip}</button><div class="row">${tour.i ? `<button class="btn sm" data-act="tourback">${L2.back}</button>` : ''}<button class="btn sm pri" data-act="tournext">${last ? L2.done : L2.next}</button></div></div></div>`;
+  const tip = t.querySelector('.tip'), vw = innerWidth, vh = innerHeight, tw = tip.offsetWidth, th = tip.offsetHeight;
+  if (!r) { tip.style.left = Math.max(12, (vw - tw) / 2) + 'px'; tip.style.top = Math.max(12, (vh - th) / 2) + 'px'; return; }
+  let top = r.bottom + 16; if (top + th > vh - 12) top = Math.max(12, r.top - th - 16);
+  if (top < 12 || top + th > vh - 12) top = Math.max(12, Math.min(vh - th - 12, vh / 2 - th / 2));
+  tip.style.top = top + 'px'; tip.style.left = Math.max(12, Math.min(vw - tw - 12, r.left)) + 'px';
+}
+document.addEventListener('karsha-lang', () => { if (DB.session) { render(); if (tour) setTimeout(tourPaint, 50); } });
+window.addEventListener('resize', () => tourPaint());
+document.addEventListener('keydown', e => { if (!tour) return; if (e.key === 'Escape') tourEnd(); if (e.key === 'ArrowRight') { tour.i = Math.min(TOUR.length - 1, tour.i + 1); tourGo(); } if (e.key === 'ArrowLeft') { tour.i = Math.max(0, tour.i - 1); tourGo(); } });
+
 /* ---------- boot ---------- */
 (async () => {
   const em = 'demo@karsha.example';
-  if (!DB.users[em]) {
+  if (!DB.users[em] && /^(localhost|127\.0\.0\.1)$/.test(location.hostname)) {
     const salt = uid() + uid();
     DB.users[em] = {name: 'Demo Account', salt, hash: await hashPw('karsha-demo-2026', salt), created: Date.now()};
     const d = newAcct(); d.bal.USD = 10000; d.kyc = {status: 'verified', name: 'Demo Account', country: 'United Kingdom', idType: 'Passport'};

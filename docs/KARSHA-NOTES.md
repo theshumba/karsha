@@ -34,3 +34,18 @@ Rest of the 76 pages still say what the template says. Known problems to rewrite
 - FAQ and blog posts mention "2.1 million accounts", "140 countries", self-custody.
 - Footer Privacy, Terms and Cookies links land on the home page (inherited from the template).
 - Template licence must be bought from Solo Foundry before this goes live commercially.
+
+## Published version (8 Nov 2026)
+
+Language: `assets/karsha-i18n.js` swaps text to Hindi from `assets/hi.json` (built by `docs/hi-dict.py`), with a
+toggle on every page. The platform has a Hindi and English guided tour (`TOUR` in `platform/index.html`).
+
+The template asserted facts that are not true of Karsha (Lisbon office, EU licence, audits, insurance fund, 2.1 million
+accounts, a team, token sales, partners, fake prices and rates). Before publishing, `docs/publish-prep.py`:
+- turned every page except home, login and signup into a "being built" page (originals are in git history),
+- hid the home sections that carried those claims (see `assets/karsha.css`),
+- added noindex and `robots.txt` so search engines skip the site until the real copy is in.
+Only the home hero and "Why Karsha" section remain, plus the platform.
+
+To bring a page back, write true copy for it, restore it from git history, and add its path to `KEEP`.
+The demo login only exists on localhost.
