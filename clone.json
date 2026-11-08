@@ -80,7 +80,7 @@
   ],
   "extra_hosts": [],
   "unmirrored_hosts": [
-    "api.halyard.exchange",
+    "api.northgate.example",
     "framer.link",
     "reactjs.org",
     "solofoundryhq.com",

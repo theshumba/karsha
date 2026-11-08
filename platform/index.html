@@ -1,0 +1,630 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Northgate Platform</title>
+<meta name="robots" content="noindex">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0b0c10; --surface:#121419; --surface-2:#171a21; --line:#26292f; --line-soft:#1d2026;
+  --text:#eceae2; --muted:#8a8d96; --accent:#5ce1ff; --accent-ink:#07080b;
+  --up:#3ddc97; --down:#ff6b6b; --warn:#ffc857;
+  --font-d:'Archivo',Inter,system-ui,sans-serif; --font-b:'Inter',system-ui,sans-serif; --font-m:'IBM Plex Mono',ui-monospace,Menlo,monospace;
+  --r:14px;
+}
+*{box-sizing:border-box;margin:0}
+html,body{background:var(--bg);color:var(--text);font-family:var(--font-b);font-size:14px;line-height:1.45;-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}
+button{font:inherit;color:inherit;cursor:pointer;border:0;background:none}
+input,select{font:inherit;color:var(--text);background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px 12px;width:100%;outline:none}
+input:focus,select:focus{border-color:var(--accent)}
+.mono{font-family:var(--font-m)} .up{color:var(--up)} .down{color:var(--down)} .muted{color:var(--muted)} .warn{color:var(--warn)}
+h1,h2,h3{font-family:var(--font-d);font-weight:600;letter-spacing:-.01em}
+h1{font-size:26px} h2{font-size:18px} h3{font-size:15px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:10px 16px;border-radius:999px;background:var(--surface-2);border:1px solid var(--line);font-weight:500;white-space:nowrap}
+.btn:hover{border-color:var(--muted)}
+.btn.pri{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.btn.buy{background:var(--up);color:var(--accent-ink);border-color:var(--up)}
+.btn.sell{background:var(--down);color:var(--accent-ink);border-color:var(--down)}
+.btn.sm{padding:6px 12px;font-size:13px}
+.btn[disabled]{opacity:.45;cursor:not-allowed}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:18px}
+.grid{display:grid;gap:14px}
+.g4{grid-template-columns:repeat(4,1fr)} .g3{grid-template-columns:repeat(3,1fr)} .g2{grid-template-columns:repeat(2,1fr)}
+.label{font-family:var(--font-m);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.big{font-family:var(--font-d);font-size:28px;font-weight:600;letter-spacing:-.02em;margin-top:6px}
+table{width:100%;border-collapse:collapse}
+th{font-family:var(--font-m);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:500;text-align:left;padding:8px 10px;border-bottom:1px solid var(--line)}
+td{padding:11px 10px;border-bottom:1px solid var(--line-soft)}
+th.r,td.r{text-align:right}
+tr.click{cursor:pointer} tr.click:hover td{background:var(--surface-2)}
+.scroll{overflow-x:auto}
+.row{display:flex;gap:10px;align-items:center} .between{justify-content:space-between} .wrap{flex-wrap:wrap}
+.stack>*+*{margin-top:12px}
+.pill{display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid var(--line);font-size:12px;color:var(--muted)}
+.tabs{display:inline-flex;background:var(--bg);border:1px solid var(--line);border-radius:999px;padding:3px;gap:2px}
+.tabs button{padding:6px 14px;border-radius:999px;color:var(--muted);font-weight:500}
+.tabs button.on{background:var(--surface-2);color:var(--text)}
+.tabs button.on.buyt{background:var(--up);color:var(--accent-ink)} .tabs button.on.sellt{background:var(--down);color:var(--accent-ink)}
+.bar{height:8px;border-radius:99px;background:var(--line);overflow:hidden;display:flex}
+.bar span{display:contents}
+.bar i{display:block;height:100%}
+.note{font-size:12px;color:var(--muted)}
+.fld{display:block} .fld>span{display:block;margin-bottom:6px}
+
+/* auth */
+.auth{min-height:100vh;display:grid;grid-template-columns:1.05fr .95fr}
+.auth .side{padding:48px;background:var(--surface);border-right:1px solid var(--line);display:flex;flex-direction:column;justify-content:space-between}
+.auth .form{display:flex;align-items:center;justify-content:center;padding:32px}
+.auth .box{width:100%;max-width:380px}
+.logo{font-family:var(--font-d);font-weight:700;font-size:20px;letter-spacing:-.02em;display:flex;align-items:center;gap:10px}
+.logo b{width:26px;height:26px;border-radius:8px;background:var(--accent);display:inline-block}
+.bullets{display:grid;gap:14px;margin-top:28px}
+.bullets div{display:flex;gap:12px} .bullets i{width:6px;height:6px;border-radius:50%;background:var(--accent);margin-top:8px;flex:none}
+.err{color:var(--down);font-size:13px;min-height:18px}
+
+/* shell */
+.shell{display:grid;grid-template-columns:224px 1fr;min-height:100vh}
+.nav{border-right:1px solid var(--line);padding:20px 14px;display:flex;flex-direction:column;gap:4px;position:sticky;top:0;height:100vh;background:var(--bg)}
+.nav .logo{padding:4px 8px 18px}
+.nav a{padding:10px 12px;border-radius:10px;color:var(--muted);font-weight:500}
+.nav a:hover{background:var(--surface)} .nav a.on{background:var(--surface-2);color:var(--text)}
+.nav .sp{flex:1}
+.main{min-width:0;display:flex;flex-direction:column}
+.top{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:14px 28px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--bg);z-index:5}
+.tick{display:flex;gap:22px;overflow:hidden;font-family:var(--font-m);font-size:12px}
+.tick span{white-space:nowrap}
+.page{padding:26px 28px 60px;max-width:1280px;width:100%}
+.head{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;margin-bottom:20px;flex-wrap:wrap}
+.trade{display:grid;grid-template-columns:1fr 320px;gap:14px}
+.chartbox{height:420px;width:100%}
+.prod{display:flex;flex-direction:column;gap:10px}
+.prod .apy{font-family:var(--font-d);font-size:30px;font-weight:600;color:var(--accent)}
+.toast{position:fixed;right:20px;bottom:20px;background:var(--surface-2);border:1px solid var(--line);border-radius:12px;padding:12px 16px;max-width:340px;z-index:50;box-shadow:0 10px 40px rgba(0,0,0,.5)}
+.toast.bad{border-color:var(--down)} .toast.good{border-color:var(--up)}
+.sim{background:var(--surface-2);border-bottom:1px solid var(--line);padding:7px 28px;font-size:12px;color:var(--muted)}
+.sim b{color:var(--warn);font-weight:500}
+@media (max-width:980px){
+  .g4{grid-template-columns:repeat(2,1fr)} .g3{grid-template-columns:1fr} .trade{grid-template-columns:1fr}
+  .auth{grid-template-columns:1fr} .auth .side{display:none}
+  .shell{grid-template-columns:1fr}
+  .nav{position:static;height:auto;flex-direction:row;overflow-x:auto;padding:10px;border-right:0;border-bottom:1px solid var(--line);order:2;position:sticky;bottom:0;top:auto;z-index:6}
+  .nav .logo,.nav .sp{display:none} .nav a{white-space:nowrap}
+  .top{padding:12px 16px} .page{padding:20px 16px 40px} .sim{padding:7px 16px}
+  .chartbox{height:320px}
+}
+@media (max-width:520px){ .g4,.g2{grid-template-columns:1fr} .tick{display:none} }
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script src="lwc.js"></script>
+<script>
+"use strict";
+/* ---------- config: one place to change product terms ---------- */
+const CFG = {
+  brand: "Northgate",
+  site: "../",
+  simulated: true,            // balances are simulated until a regulated custodian is connected
+  feeSpot: 0.001,             // 0.10 %
+  feeFut: 0.0005,             // 0.05 % of notional, each side
+  maxLevStandard: 5,
+  maxLevLeveraged: 20,
+  mmr: 0.005,                 // maintenance margin
+  noticeDays: 60,             // savings withdrawal notice
+  demoFunds: 10000,
+  pairs: ["BTC","ETH","SOL","BNB","XRP","ADA","DOGE","AVAX","LINK","DOT","LTC","ATOM"],
+  names: {BTC:"Bitcoin",ETH:"Ethereum",SOL:"Solana",BNB:"BNB",XRP:"XRP",ADA:"Cardano",DOGE:"Dogecoin",AVAX:"Avalanche",LINK:"Chainlink",DOT:"Polkadot",LTC:"Litecoin",ATOM:"Cosmos",USD:"US Dollar"},
+  /* Placeholder rates. Owner sets the real ones. */
+  products: [
+    {id:"usd",  asset:"USD", name:"Dollar Savings",   apy:4.0, min:100,   blurb:"A dollar balance that earns daily."},
+    {id:"btc",  asset:"BTC", name:"Bitcoin Savings",  apy:1.5, min:0.005, blurb:"Earn on the Bitcoin you intend to hold."},
+    {id:"eth",  asset:"ETH", name:"Ether Savings",    apy:2.5, min:0.1,   blurb:"Earn on the Ether you intend to hold."}
+  ]
+};
+const DAY = 864e5, YEAR = 365 * DAY;
+
+/* ---------- helpers ---------- */
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const usd = (n, d = 2) => (n < 0 ? '-' : '') + '$' + Math.abs(n).toLocaleString('en-US', {minimumFractionDigits: d, maximumFractionDigits: d});
+const qty = n => n === 0 ? '0' : n >= 1000 ? n.toFixed(2) : n >= 1 ? n.toFixed(4) : n.toFixed(6);
+const pct = n => (n >= 0 ? '+' : '') + n.toFixed(2) + '%';
+const cls = n => n >= 0 ? 'up' : 'down';
+const pxd = v => v >= 100 ? 2 : v >= 1 ? 4 : 6;
+const px = v => usd(v, pxd(v));
+const fdate = t => new Date(t).toLocaleDateString('en-GB', {day:'numeric', month:'short', year:'numeric'});
+const ftime = t => new Date(t).toLocaleString('en-GB', {day:'numeric', month:'short', hour:'2-digit', minute:'2-digit'});
+const uid = () => Math.random().toString(36).slice(2, 9);
+
+/* ---------- storage ---------- */
+let DB = {users: {}, session: null, data: {}};
+try { const s = JSON.parse(localStorage.getItem('ng.v1')); if (s && s.users) DB = s; } catch (e) {}
+const save = () => { try { localStorage.setItem('ng.v1', JSON.stringify(DB)); } catch (e) {} };
+const acct = () => DB.data[DB.session];
+const newAcct = () => ({bal: {USD: 0}, orders: [], pos: [], sav: [], log: [], skew: 0, leveraged: false});
+const now = () => Date.now() + (acct() ? acct().skew : 0);
+const logit = (type, text) => { const a = acct(); a.log.unshift({t: now(), type, text}); a.log.length = Math.min(a.log.length, 300); };
+
+async function hashPw(pw, salt) {
+  if (!(window.crypto && crypto.subtle)) return 'x:' + btoa(unescape(encodeURIComponent(salt + pw)));
+  const k = await crypto.subtle.importKey('raw', new TextEncoder().encode(pw), 'PBKDF2', false, ['deriveBits']);
+  const b = await crypto.subtle.deriveBits({name: 'PBKDF2', salt: new TextEncoder().encode(salt), iterations: 100000, hash: 'SHA-256'}, k, 256);
+  return [...new Uint8Array(b)].map(x => x.toString(16).padStart(2, '0')).join('');
+}
+
+/* ---------- prices ---------- */
+const P = {}; const feed = {ok: false, src: ''};
+const BN = 'https://data-api.binance.vision/api/v3';
+const CG_IDS = {BTC:'bitcoin',ETH:'ethereum',SOL:'solana',BNB:'binancecoin',XRP:'ripple',ADA:'cardano',DOGE:'dogecoin',AVAX:'avalanche-2',LINK:'chainlink',DOT:'polkadot',LTC:'litecoin',ATOM:'cosmos'};
+async function pull() {
+  try {
+    const syms = CFG.pairs.map(s => s + 'USDT');
+    const r = await fetch(BN + '/ticker/24hr?symbols=' + encodeURIComponent(JSON.stringify(syms)));
+    if (!r.ok) throw new Error('bn');
+    (await r.json()).forEach(t => { P[t.symbol.replace('USDT','')] = {last: +t.lastPrice, chg: +t.priceChangePercent, high: +t.highPrice, low: +t.lowPrice, vol: +t.quoteVolume}; });
+    feed.ok = true; feed.src = 'Binance market data';
+  } catch (e) {
+    try {
+      const ids = CFG.pairs.map(s => CG_IDS[s]).join(',');
+      const r = await fetch('https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=' + ids);
+      (await r.json()).forEach(c => { const s = Object.keys(CG_IDS).find(k => CG_IDS[k] === c.id); P[s] = {last: c.current_price, chg: c.price_change_percentage_24h || 0, high: c.high_24h, low: c.low_24h, vol: c.total_volume}; });
+      feed.ok = true; feed.src = 'CoinGecko market data';
+    } catch (e2) { feed.ok = false; }
+  }
+  if (DB.session) engine();
+  tick();
+}
+const price = a => a === 'USD' ? 1 : (P[a] ? P[a].last : 0);
+
+/* ---------- accounting ---------- */
+function posPnl(p) { const m = price(p.sym); if (!m) return 0; return (p.side === 'long' ? m - p.entry : p.entry - m) * p.size; }
+function liqPx(side, entry, lev) { return side === 'long' ? entry * (1 - 1 / lev + CFG.mmr) : entry * (1 + 1 / lev - CFG.mmr); }
+function savVal(s) {
+  const end = s.release ? Math.min(now(), s.release) : now();
+  return s.principal * (1 + (CFG.products.find(p => p.id === s.pid).apy / 100) * Math.max(0, end - s.start) / YEAR);
+}
+function totals() {
+  const a = acct(); let cash = a.bal.USD || 0, spot = 0, resv = 0, marg = 0, upnl = 0, sav = 0, earned = 0;
+  Object.keys(a.bal).forEach(k => { if (k !== 'USD') spot += a.bal[k] * price(k); });
+  a.orders.forEach(o => { resv += o.side === 'buy' ? o.reserve : o.qty * price(o.sym); });
+  a.pos.forEach(p => { marg += p.margin; upnl += posPnl(p); });
+  a.sav.forEach(s => { const v = savVal(s); sav += v * price(s.asset); earned += (v - s.principal) * price(s.asset); });
+  return {cash, spot, resv, marg, upnl, sav, earned, equity: cash + spot + resv + marg + upnl + sav};
+}
+function maxLev() { return acct().leveraged ? CFG.maxLevLeveraged : CFG.maxLevStandard; }
+
+/* ---------- engine: limit fills, stops, liquidations ---------- */
+function engine() {
+  const a = acct(); let changed = false;
+  a.orders = a.orders.filter(o => {
+    const m = price(o.sym); if (!m) return true;
+    const hit = o.side === 'buy' ? m <= o.price : m >= o.price;
+    if (!hit) return true;
+    if (o.side === 'buy') { a.bal[o.sym] = (a.bal[o.sym] || 0) + o.qty; logit('Fill', `Limit buy filled: ${qty(o.qty)} ${o.sym} at ${px(o.price)}`); }
+    else { a.bal.USD = (a.bal.USD || 0) + o.qty * o.price * (1 - CFG.feeSpot); logit('Fill', `Limit sell filled: ${qty(o.qty)} ${o.sym} at ${px(o.price)}`); }
+    changed = true; return false;
+  });
+  a.pos = a.pos.filter(p => {
+    const m = price(p.sym); if (!m) return true;
+    const liq = liqPx(p.side, p.entry, p.lev);
+    if ((p.side === 'long' && m <= liq) || (p.side === 'short' && m >= liq)) { logit('Liquidation', `${p.sym} ${p.side} ${p.lev}x liquidated at ${px(m)}. Margin ${usd(p.margin)} lost.`); toast(`${p.sym} ${p.side} was liquidated`, 'bad'); changed = true; return false; }
+    const sl = p.sl && (p.side === 'long' ? m <= p.sl : m >= p.sl), tp = p.tp && (p.side === 'long' ? m >= p.tp : m <= p.tp);
+    if (sl || tp) { closeCash(p, m, sl ? 'Stop loss' : 'Take profit'); changed = true; return false; }
+    return true;
+  });
+  if (changed) { save(); if (route() !== 'trade' && route() !== 'futures') render(); else render(true); }
+}
+function closeCash(p, m, why) {
+  const pnl = (p.side === 'long' ? m - p.entry : p.entry - m) * p.size;
+  const fee = p.size * m * CFG.feeFut;
+  const back = Math.max(0, p.margin + pnl - fee);
+  acct().bal.USD = (acct().bal.USD || 0) + back;
+  logit(why, `${p.sym} ${p.side} ${p.lev}x closed at ${px(m)}. P&L ${usd(pnl - fee)}.`);
+  toast(`${p.sym} ${p.side} closed. P&L ${usd(pnl - fee)}`, pnl - fee >= 0 ? 'good' : 'bad');
+}
+
+/* ---------- toast ---------- */
+let toastT;
+function toast(msg, kind) {
+  let t = $('#toast'); if (!t) { t = document.createElement('div'); t.id = 'toast'; document.body.appendChild(t); }
+  t.className = 'toast ' + (kind || ''); t.textContent = msg; t.style.display = 'block';
+  clearTimeout(toastT); toastT = setTimeout(() => { t.style.display = 'none'; }, 4200);
+}
+
+/* ---------- live registry ---------- */
+let live = [];
+const L = fn => { const id = 'lv' + live.length; live.push({id, fn}); return `<span id="${id}">${fn()}</span>`; };
+function tick() {
+  live.forEach(l => { const el = document.getElementById(l.id); if (el) el.innerHTML = l.fn(); });
+  const tk = $('#tickbar'); if (tk) tk.innerHTML = tickHtml();
+  const fd = $('#feed'); if (fd) fd.innerHTML = feedHtml();
+  chartTick();
+}
+const tickHtml = () => ['BTC','ETH','SOL'].map(s => P[s] ? `<span>${s} ${px(P[s].last)} <b class="${cls(P[s].chg)}">${pct(P[s].chg)}</b></span>` : '').join('');
+const feedHtml = () => feed.ok ? `<span class="up">●</span> ${esc(feed.src)}` : `<span class="down">●</span> Market data offline, retrying`;
+
+/* ---------- routing ---------- */
+const route = () => (location.hash.replace(/^#\/?/, '').split('?')[0]) || 'overview';
+const go = r => { location.hash = '#/' + r; };
+window.addEventListener('hashchange', () => render());
+
+/* ---------- chart ---------- */
+let chart = null;
+const T = {sym: 'BTC', iv: '15m', side: 'buy', type: 'market', fside: 'long', lev: 3};
+async function mountChart() {
+  const el = $('#chart'); if (!el || !window.LightweightCharts) return;
+  if (chart) { try { chart.api.remove(); } catch (e) {} chart = null; }
+  const cs = getComputedStyle(document.documentElement), g = n => cs.getPropertyValue(n).trim();
+  const api = LightweightCharts.createChart(el, {
+    autoSize: true, localization: {locale: 'en-GB'},
+    layout: {background: {type: 'solid', color: g('--surface')}, textColor: g('--muted'), fontFamily: 'IBM Plex Mono, monospace'},
+    grid: {vertLines: {color: g('--line-soft')}, horzLines: {color: g('--line-soft')}},
+    rightPriceScale: {borderColor: g('--line')}, timeScale: {borderColor: g('--line'), timeVisible: true},
+    crosshair: {mode: 0}
+  });
+  const series = api.addCandlestickSeries({upColor: g('--up'), downColor: g('--down'), borderVisible: false, wickUpColor: g('--up'), wickDownColor: g('--down')});
+  chart = {api, series, sym: T.sym, last: null};
+  try {
+    const r = await fetch(`${BN}/klines?symbol=${T.sym}USDT&interval=${T.iv}&limit=300`);
+    const k = await r.json();
+    if (!chart || chart.series !== series) return;
+    const data = k.map(x => ({time: Math.floor(x[0] / 1000), open: +x[1], high: +x[2], low: +x[3], close: +x[4]}));
+    series.setData(data); chart.last = data[data.length - 1]; api.timeScale().fitContent();
+  } catch (e) { el.innerHTML = '<div class="muted" style="padding:20px">Chart data unavailable right now.</div>'; }
+}
+function chartTick() {
+  if (!chart || !chart.last || !P[chart.sym]) return;
+  const p = P[chart.sym].last, b = chart.last;
+  b.close = p; b.high = Math.max(b.high, p); b.low = Math.min(b.low, p);
+  try { chart.series.update(b); } catch (e) {}
+}
+
+/* ---------- views ---------- */
+const NAV = [['overview','Overview'],['markets','Markets'],['trade','Spot trading'],['futures','Futures'],['earn','Savings'],['wallet','Wallet'],['activity','Activity'],['settings','Settings']];
+
+function shell(inner) {
+  const r = route();
+  return `<div class="shell">
+  <nav class="nav"><a class="logo" href="${CFG.site}"><b></b>${esc(CFG.brand)}</a>
+    ${NAV.map(([k, n]) => `<a href="#/${k}" class="${r === k ? 'on' : ''}">${n}</a>`).join('')}
+    <div class="sp"></div><a href="#" data-act="logout">Log out</a></nav>
+  <div class="main">
+    ${CFG.simulated ? `<div class="sim"><b>Simulated balances.</b> No real money moves in this account. Prices are live.</div>` : ''}
+    <div class="top"><div class="tick" id="tickbar">${tickHtml()}</div>
+      <div class="row"><span class="note" id="feed">${feedHtml()}</span><span class="pill">${esc(DB.users[DB.session].name)}</span></div></div>
+    <div class="page">${inner}</div>
+  </div></div>`;
+}
+
+function vOverview() {
+  const t = totals(), a = acct();
+  const seg = [['Cash', t.cash, 'var(--accent)'], ['Spot assets', t.spot + t.resv, 'var(--up)'], ['Futures', t.marg + t.upnl, 'var(--warn)'], ['Savings', t.sav, 'var(--muted)']];
+  const tot = Math.max(t.equity, 1e-9);
+  const cards = [
+    ['earn', 'Savings', `Earn ${CFG.products.map(p => p.apy).sort((x, y) => x - y)[0]}% to ${CFG.products.map(p => p.apy).sort((x, y) => y - x)[0]}% a year on balances you leave with us. ${CFG.noticeDays} days notice to withdraw.`],
+    ['trade', 'Swing and day trading', 'Buy and sell 12 major assets at live prices with market and limit orders.'],
+    ['futures', 'Futures', `Go long or short with up to ${CFG.maxLevStandard}x leverage.`],
+    ['settings', 'Leveraged account', a.leveraged ? `Active. Up to ${CFG.maxLevLeveraged}x on futures.` : `Unlock up to ${CFG.maxLevLeveraged}x leverage on futures.`]
+  ];
+  return `<div class="head"><div><div class="label">Total equity</div><div class="big" style="font-size:40px">${L(() => usd(totals().equity))}</div></div>
+    <div class="row"><button class="btn" data-act="addfunds">Add ${usd(CFG.demoFunds, 0)} simulated funds</button></div></div>
+  <div class="grid g4">
+    <div class="card"><div class="label">Cash</div><div class="big">${L(() => usd(totals().cash))}</div></div>
+    <div class="card"><div class="label">Spot assets</div><div class="big">${L(() => usd(totals().spot + totals().resv))}</div></div>
+    <div class="card"><div class="label">Open futures P&amp;L</div><div class="big">${L(() => { const u = totals().upnl; return `<span class="${cls(u)}">${usd(u)}</span>`; })}</div></div>
+    <div class="card"><div class="label">Savings interest earned</div><div class="big">${L(() => usd(totals().earned))}</div></div>
+  </div>
+  <div class="card" style="margin-top:14px"><div class="label">Allocation</div>
+    <div class="bar" style="margin:12px 0">${L(() => { const tt = totals(), tot2 = Math.max(tt.equity, 1e-9); return [[tt.cash,'var(--accent)'],[tt.spot+tt.resv,'var(--up)'],[tt.marg+tt.upnl,'var(--warn)'],[tt.sav,'var(--muted)']].map(([v,c]) => `<i style="width:${Math.max(0,v)/tot2*100}%;background:${c}"></i>`).join(''); })}</div>
+    <div class="row wrap">${seg.map(([n, , c]) => `<span class="note"><i style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${c}"></i> ${n}</span>`).join('')}</div></div>
+  <h2 style="margin:26px 0 12px">Your accounts</h2>
+  <div class="grid g4">${cards.map(([k, n, d]) => `<a class="card" href="#/${k}"><h3>${n}</h3><p class="muted" style="margin-top:6px">${d}</p></a>`).join('')}</div>
+  <h2 style="margin:26px 0 12px">Open futures positions</h2>${posTable()}
+  <h2 style="margin:26px 0 12px">Biggest movers, 24 hours</h2>${moversTable()}`;
+}
+function moversTable() {
+  const rows = Object.keys(P).sort((x, y) => Math.abs(P[y].chg) - Math.abs(P[x].chg)).slice(0, 5);
+  if (!rows.length) return '<div class="card muted">Waiting for market data.</div>';
+  return `<div class="card scroll"><table><tr><th>Asset</th><th class="r">Price</th><th class="r">24h</th></tr>${rows.map(s => `<tr class="click" data-act="pick" data-sym="${s}"><td>${s} <span class="muted">${CFG.names[s]}</span></td><td class="r mono">${px(P[s].last)}</td><td class="r mono ${cls(P[s].chg)}">${pct(P[s].chg)}</td></tr>`).join('')}</table></div>`;
+}
+
+function vMarkets() {
+  const rows = CFG.pairs.filter(s => P[s]);
+  return `<div class="head"><div><h1>Markets</h1><p class="muted">Live prices. Select an asset to trade it.</p></div></div>
+  <div class="card scroll"><table><tr><th>Asset</th><th class="r">Price</th><th class="r">24h change</th><th class="r">24h high</th><th class="r">24h low</th><th class="r">24h volume</th></tr>
+  ${rows.length ? rows.map(s => `<tr class="click" data-act="pick" data-sym="${s}"><td><b>${s}</b> <span class="muted">${CFG.names[s]}</span></td>
+    <td class="r mono">${L(() => px(P[s].last))}</td><td class="r mono ${cls(P[s].chg)}">${L(() => pct(P[s].chg))}</td>
+    <td class="r mono">${px(P[s].high)}</td><td class="r mono">${px(P[s].low)}</td><td class="r mono">${usd(P[s].vol / 1e6, 1)}M</td></tr>`).join('') : '<tr><td colspan="6" class="muted">Waiting for market data.</td></tr>'}
+  </table></div>`;
+}
+
+function symSelect() { return `<select data-bind="sym">${CFG.pairs.map(s => `<option ${s === T.sym ? 'selected' : ''}>${s}</option>`).join('')}</select>`; }
+function ivTabs() { return `<div class="tabs">${['1m','5m','15m','1h','4h','1d'].map(i => `<button class="${T.iv === i ? 'on' : ''}" data-act="iv" data-v="${i}">${i}</button>`).join('')}</div>`; }
+function chartCard() {
+  return `<div class="card" style="padding:0;overflow:hidden"><div class="row between wrap" style="padding:14px 16px"><div class="row"><div style="width:130px">${symSelect()}</div>
+    <div><span class="big mono" style="font-size:22px;margin:0">${L(() => P[T.sym] ? px(P[T.sym].last) : '...')}</span> <span class="mono ${P[T.sym] ? cls(P[T.sym].chg) : ''}">${L(() => P[T.sym] ? pct(P[T.sym].chg) : '')}</span></div></div>${ivTabs()}</div>
+    <div class="chartbox" id="chart"></div></div>`;
+}
+
+function vTrade() {
+  const a = acct(), isBuy = T.side === 'buy';
+  const open = a.orders.length ? `<table><tr><th>Pair</th><th>Side</th><th class="r">Price</th><th class="r">Amount</th><th></th></tr>${a.orders.map(o => `<tr><td>${o.sym}</td><td class="${o.side === 'buy' ? 'up' : 'down'}">${o.side}</td><td class="r mono">${px(o.price)}</td><td class="r mono">${qty(o.qty)}</td><td class="r"><button class="btn sm" data-act="cancel" data-id="${o.id}">Cancel</button></td></tr>`).join('')}</table>` : '<p class="muted">No open orders.</p>';
+  const held = Object.keys(a.bal).filter(k => k !== 'USD' && a.bal[k] > 1e-9);
+  return `<div class="head"><div><h1>Spot trading</h1><p class="muted">Swing and day trading at live prices. Fee ${(CFG.feeSpot * 100).toFixed(2)}%.</p></div></div>
+  <div class="trade"><div class="stack">${chartCard()}
+    <div class="card"><h3>Open orders</h3><div class="scroll" style="margin-top:8px">${open}</div></div></div>
+  <div class="stack"><form class="card stack" data-form="spot">
+    <div class="tabs" style="display:flex"><button type="button" style="flex:1" class="buyt ${isBuy ? 'on' : ''}" data-act="side" data-v="buy">Buy</button><button type="button" style="flex:1" class="sellt ${!isBuy ? 'on' : ''}" data-act="side" data-v="sell">Sell</button></div>
+    <div class="tabs"><button type="button" class="${T.type === 'market' ? 'on' : ''}" data-act="type" data-v="market">Market</button><button type="button" class="${T.type === 'limit' ? 'on' : ''}" data-act="type" data-v="limit">Limit</button></div>
+    ${T.type === 'limit' ? `<label class="fld"><span class="label">Limit price (USD)</span><input name="lp" inputmode="decimal" value="${P[T.sym] ? P[T.sym].last : ''}"></label>` : ''}
+    <label class="fld"><span class="label">Amount (USD)</span><input name="amt" inputmode="decimal" placeholder="0.00" autocomplete="off"></label>
+    <div class="row">${[25, 50, 75, 100].map(p => `<button type="button" class="btn sm" style="flex:1" data-act="pctfill" data-v="${p}">${p}%</button>`).join('')}</div>
+    <div class="note">Available: ${L(() => isBuy ? usd(acct().bal.USD || 0) : qty(acct().bal[T.sym] || 0) + ' ' + T.sym)}</div>
+    <button class="btn ${isBuy ? 'buy' : 'sell'}">${isBuy ? 'Buy' : 'Sell'} ${T.sym}</button></form>
+    <div class="card"><h3>Your holdings</h3><div style="margin-top:8px">${held.length ? held.map(k => `<div class="row between" style="padding:6px 0"><span>${k}</span><span class="mono">${L(() => qty(acct().bal[k] || 0))} <span class="muted">${L(() => usd((acct().bal[k] || 0) * price(k)))}</span></span></div>`).join('') : '<p class="muted">No assets yet.</p>'}</div></div></div></div>`;
+}
+
+function posTable() {
+  const a = acct();
+  if (!a.pos.length) return '<div class="card muted">No open positions.</div>';
+  return `<div class="card scroll"><table><tr><th>Pair</th><th>Side</th><th class="r">Size</th><th class="r">Entry</th><th class="r">Mark</th><th class="r">Liq. price</th><th class="r">Margin</th><th class="r">P&amp;L</th><th></th></tr>
+  ${a.pos.map(p => `<tr><td>${p.sym} <span class="pill">${p.lev}x</span></td><td class="${p.side === 'long' ? 'up' : 'down'}">${p.side}</td><td class="r mono">${qty(p.size)}</td><td class="r mono">${px(p.entry)}</td>
+  <td class="r mono">${L(() => px(price(p.sym)))}</td><td class="r mono warn">${px(liqPx(p.side, p.entry, p.lev))}</td><td class="r mono">${usd(p.margin)}</td>
+  <td class="r mono">${L(() => { const v = posPnl(p); return `<span class="${cls(v)}">${usd(v)}</span>`; })}</td><td class="r"><button class="btn sm" data-act="closepos" data-id="${p.id}">Close</button></td></tr>`).join('')}</table></div>`;
+}
+
+function vFutures() {
+  const ml = maxLev(); if (T.lev > ml) T.lev = ml;
+  const long = T.fside === 'long';
+  return `<div class="head"><div><h1>Futures</h1><p class="muted">Long or short with leverage. Fee ${(CFG.feeFut * 100).toFixed(2)}% each side. Your limit is ${ml}x${acct().leveraged ? '' : ', raise it in Settings with a leveraged account'}.</p></div></div>
+  <div class="trade"><div class="stack">${chartCard()}<h3>Open positions</h3>${posTable()}</div>
+  <form class="card stack" data-form="fut">
+    <div class="tabs" style="display:flex"><button type="button" style="flex:1" class="buyt ${long ? 'on' : ''}" data-act="fside" data-v="long">Long</button><button type="button" style="flex:1" class="sellt ${!long ? 'on' : ''}" data-act="fside" data-v="short">Short</button></div>
+    <label class="fld"><span class="label">Margin (USD)</span><input name="margin" inputmode="decimal" placeholder="0.00" autocomplete="off"></label>
+    <label class="fld"><span class="label">Leverage <b id="levv" class="mono">${T.lev}x</b></span><input name="lev" type="range" min="1" max="${ml}" value="${T.lev}" style="padding:0"></label>
+    <div class="grid g2"><label class="fld"><span class="label">Stop loss</span><input name="sl" inputmode="decimal" placeholder="optional"></label><label class="fld"><span class="label">Take profit</span><input name="tp" inputmode="decimal" placeholder="optional"></label></div>
+    <div class="note" id="futprev">Enter a margin amount to preview size and liquidation price.</div>
+    <div class="note">Available: ${L(() => usd(acct().bal.USD || 0))}</div>
+    <button class="btn ${long ? 'buy' : 'sell'}">Open ${T.fside} ${T.sym}</button></form></div>`;
+}
+
+function vEarn() {
+  const a = acct();
+  const prods = CFG.products.map(p => `<form class="card prod" data-form="sav" data-pid="${p.id}">
+    <div class="row between"><h3>${p.name}</h3><span class="pill">${p.asset}</span></div><div class="apy">${p.apy.toFixed(1)}% <span class="note" style="font-family:var(--font-b)">per year</span></div>
+    <p class="muted">${p.blurb}</p><p class="note">Minimum ${p.asset === 'USD' ? usd(p.min, 0) : p.min + ' ' + p.asset}. Withdrawal needs ${CFG.noticeDays} days notice. Interest accrues daily.</p>
+    <input name="amt" inputmode="decimal" placeholder="Amount in ${p.asset}" autocomplete="off">
+    <div class="note">Available: ${L(() => qty(a.bal[p.asset] || 0) + ' ' + p.asset)}</div>
+    <button class="btn pri">Deposit</button></form>`).join('');
+  const rows = a.sav.length ? `<div class="card scroll"><table><tr><th>Product</th><th class="r">Deposited</th><th class="r">Value now</th><th>Opened</th><th>Status</th><th></th></tr>${a.sav.map(s => {
+    const p = CFG.products.find(x => x.id === s.pid); const ready = s.release && now() >= s.release;
+    const status = !s.release ? '<span class="muted">Earning</span>' : ready ? '<span class="up">Ready to withdraw</span>' : `<span class="warn">Notice running, releases ${fdate(s.release)}</span>`;
+    const btn = !s.release ? `<button class="btn sm" data-act="notice" data-id="${s.id}">Request withdrawal</button>` : ready ? `<button class="btn sm pri" data-act="release" data-id="${s.id}">Withdraw</button>` : `<span class="note">${Math.ceil((s.release - now()) / DAY)} days left</span>`;
+    return `<tr><td>${p.name}</td><td class="r mono">${qty(s.principal)} ${s.asset}</td><td class="r mono">${L(() => qty(savVal(s)) + ' ' + s.asset)}</td><td>${fdate(s.start)}</td><td>${status}</td><td class="r">${btn}</td></tr>`; }).join('')}</table></div>` : '<div class="card muted">No savings yet. Deposit above to start earning.</div>';
+  return `<div class="head"><div><h1>Savings</h1><p class="muted">Earn on balances you leave with us. To withdraw, give ${CFG.noticeDays} days notice. Interest keeps accruing until the notice ends.</p></div></div>
+  <div class="grid g3">${prods}</div><h2 style="margin:26px 0 12px">Your savings</h2>${rows}`;
+}
+
+function vWallet() {
+  const a = acct(), keys = Object.keys(a.bal).filter(k => k === 'USD' || a.bal[k] > 1e-9);
+  return `<div class="head"><div><h1>Wallet</h1><p class="muted">Everything you hold, valued at live prices.</p></div>
+    <div class="row"><button class="btn pri" data-act="addfunds">Add ${usd(CFG.demoFunds, 0)} simulated funds</button><button class="btn" data-act="withdrawcash">Withdraw cash</button></div></div>
+  <div class="card scroll"><table><tr><th>Asset</th><th class="r">Balance</th><th class="r">Price</th><th class="r">Value</th></tr>
+  ${keys.map(k => `<tr><td><b>${k}</b> <span class="muted">${CFG.names[k] || ''}</span></td><td class="r mono">${L(() => k === 'USD' ? usd(a.bal.USD || 0) : qty(a.bal[k] || 0))}</td><td class="r mono">${k === 'USD' ? '' : L(() => px(price(k)))}</td><td class="r mono">${L(() => usd((a.bal[k] || 0) * price(k)))}</td></tr>`).join('')}</table></div>
+  <p class="note" style="margin-top:12px">${CFG.simulated ? 'Deposits and withdrawals here are simulated. Real funding turns on when a regulated custodian is connected.' : ''}</p>`;
+}
+
+function vActivity() {
+  const a = acct();
+  return `<div class="head"><div><h1>Activity</h1><p class="muted">Every trade, fill, deposit and withdrawal.</p></div></div>
+  <div class="card scroll">${a.log.length ? `<table><tr><th>When</th><th>Type</th><th>Detail</th></tr>${a.log.map(l => `<tr><td class="mono" style="white-space:nowrap">${ftime(l.t)}</td><td>${esc(l.type)}</td><td>${esc(l.text)}</td></tr>`).join('')}</table>` : '<p class="muted">Nothing yet.</p>'}</div>`;
+}
+
+function vSettings() {
+  const a = acct(), u = DB.users[DB.session];
+  return `<div class="head"><div><h1>Settings</h1></div></div>
+  <div class="grid g2">
+  <div class="card stack"><h3>Profile</h3><div class="row between"><span class="muted">Name</span><span>${esc(u.name)}</span></div><div class="row between"><span class="muted">Email</span><span>${esc(DB.session)}</span></div>
+    <div class="row between"><span class="muted">Member since</span><span>${fdate(u.created)}</span></div></div>
+  <div class="card stack"><h3>Leveraged account</h3><p class="muted">Raises your futures limit from ${CFG.maxLevStandard}x to ${CFG.maxLevLeveraged}x. Leverage multiplies losses as well as gains, and a position is closed automatically if it loses most of its margin.</p>
+    <button class="btn ${a.leveraged ? '' : 'pri'}" data-act="togglelev">${a.leveraged ? 'Switch back to standard' : 'Enable leveraged account'}</button></div>
+  <div class="card stack"><h3>Savings clock</h3><p class="muted">Move this account's clock forward to see interest build and the ${CFG.noticeDays} day notice run out. Only for trying the product.</p>
+    <div class="row wrap"><button class="btn sm" data-act="skew" data-v="7">+7 days</button><button class="btn sm" data-act="skew" data-v="30">+30 days</button><button class="btn sm" data-act="skew" data-v="60">+60 days</button></div>
+    <div class="note">Clock is ${a.skew ? Math.round(a.skew / DAY) + ' days ahead' : 'on real time'}.</div></div>
+  <div class="card stack"><h3>Account data</h3><div class="row wrap"><button class="btn sm" data-act="export">Download my data</button><button class="btn sm" data-act="reset">Reset account</button></div>
+    <p class="note">Data is stored in this browser only.</p></div></div>`;
+}
+
+function vAuth(mode) {
+  const su = mode === 'signup';
+  return `<div class="auth"><div class="side"><a class="logo" href="${CFG.site}"><b></b>${esc(CFG.brand)}</a>
+    <div><h1 style="font-size:34px;max-width:420px">Savings, spot and futures in one account.</h1>
+      <div class="bullets"><div><i></i><p>High yield savings, paid daily, with ${CFG.noticeDays} days notice to withdraw.</p></div>
+      <div><i></i><p>Swing and day trading on 12 major assets at live prices.</p></div>
+      <div><i></i><p>Futures with optional leveraged accounts.</p></div></div></div>
+    <p class="note">Trading crypto and using leverage carries a high risk of losing money. Never trade more than you can afford to lose.</p></div>
+  <div class="form"><form class="box stack" data-form="${su ? 'signup' : 'login'}" novalidate>
+    <h1>${su ? 'Create your account' : 'Welcome back'}</h1>
+    ${su ? '<label class="fld"><span class="label">Full name</span><input name="name" autocomplete="name"></label>' : ''}
+    <label class="fld"><span class="label">Email</span><input name="email" type="email" autocomplete="email"></label>
+    <label class="fld"><span class="label">Password</span><input name="pw" type="password" autocomplete="${su ? 'new-password' : 'current-password'}" placeholder="${su ? 'At least 8 characters' : ''}"></label>
+    ${su ? '<label class="row" style="align-items:flex-start"><input name="ok" type="checkbox" style="width:auto;margin-top:3px"><span class="note">I understand that crypto trading and leverage can lose me money, and that savings withdrawals need ' + CFG.noticeDays + ' days notice.</span></label>' : ''}
+    <div class="err" id="err"></div>
+    <button class="btn pri" style="width:100%">${su ? 'Create account' : 'Log in'}</button>
+    <p class="note" style="text-align:center">${su ? 'Already have an account? <a class="up" href="#/login" style="color:var(--accent)">Log in</a>' : 'New here? <a href="#/signup" style="color:var(--accent)">Create an account</a>'}</p>
+  </form></div></div>`;
+}
+
+/* ---------- render ---------- */
+function render(soft) {
+  live = [];
+  const app = $('#app'); let r = route();
+  if (!DB.session || !DB.users[DB.session]) {
+    DB.session = null;
+    if (r !== 'login' && r !== 'signup') r = (/signup/.test(location.search)) ? 'signup' : 'login';
+    app.innerHTML = vAuth(r); return;
+  }
+  if (r === 'login' || r === 'signup') { go('overview'); return; }
+  const views = {overview: vOverview, markets: vMarkets, trade: vTrade, futures: vFutures, earn: vEarn, wallet: vWallet, activity: vActivity, settings: vSettings};
+  const fn = views[r] || vOverview;
+  if (soft) { const f = document.activeElement; if (f && /INPUT|SELECT/.test(f.tagName)) return; }
+  app.innerHTML = shell(fn());
+  if (r === 'trade' || r === 'futures') mountChart(); else chart = null;
+  if (r === 'trade' || r === 'futures') window.scrollTo(0, 0);
+}
+
+/* ---------- actions ---------- */
+const num = v => { const n = parseFloat(String(v).replace(/,/g, '')); return isFinite(n) ? n : NaN; };
+document.addEventListener('click', e => {
+  const el = e.target.closest('[data-act]'); if (!el) return;
+  const act = el.dataset.act, v = el.dataset.v, a = DB.session ? acct() : null;
+  if (act === 'logout') { e.preventDefault(); DB.session = null; save(); go('login'); render(); return; }
+  if (act === 'iv') { T.iv = v; render(); return; }
+  if (act === 'side') { T.side = v; render(); return; }
+  if (act === 'fside') { T.fside = v; render(); return; }
+  if (act === 'type') { T.type = v; render(); return; }
+  if (act === 'pick') { T.sym = el.dataset.sym; go('trade'); render(); return; }
+  if (act === 'pctfill') {
+    const f = el.closest('form'), isBuy = T.side === 'buy';
+    const max = isBuy ? (a.bal.USD || 0) : (a.bal[T.sym] || 0) * price(T.sym);
+    f.amt.value = (Math.floor(max * (v / 100) * 100) / 100).toFixed(2); return;
+  }
+  if (act === 'addfunds') { a.bal.USD = (a.bal.USD || 0) + CFG.demoFunds; logit('Deposit', `Simulated deposit of ${usd(CFG.demoFunds)}`); save(); toast(`${usd(CFG.demoFunds)} simulated funds added`, 'good'); render(); return; }
+  if (act === 'withdrawcash') {
+    const s = prompt('Amount to withdraw (USD)'); const n = num(s);
+    if (!isFinite(n) || n <= 0) return;
+    if (n > (a.bal.USD || 0)) return toast('You do not have that much cash.', 'bad');
+    a.bal.USD -= n; logit('Withdrawal', `Simulated withdrawal of ${usd(n)}`); save(); toast('Withdrawal recorded', 'good'); render(); return;
+  }
+  if (act === 'cancel') {
+    const o = a.orders.find(x => x.id === el.dataset.id); if (!o) return;
+    if (o.side === 'buy') a.bal.USD = (a.bal.USD || 0) + o.reserve; else a.bal[o.sym] = (a.bal[o.sym] || 0) + o.qty;
+    a.orders = a.orders.filter(x => x !== o); logit('Order', `Cancelled limit ${o.side} ${o.sym}`); save(); render(); return;
+  }
+  if (act === 'closepos') {
+    const p = a.pos.find(x => x.id === el.dataset.id); if (!p) return;
+    closeCash(p, price(p.sym), 'Close'); a.pos = a.pos.filter(x => x !== p); save(); render(); return;
+  }
+  if (act === 'notice') {
+    const s = a.sav.find(x => x.id === el.dataset.id); if (!s) return;
+    if (!confirm(`Request withdrawal? Your funds stay locked and keep earning for ${CFG.noticeDays} days, then become available.`)) return;
+    s.release = now() + CFG.noticeDays * DAY; logit('Savings', `Withdrawal notice given. Funds release ${fdate(s.release)}.`); save(); render(); return;
+  }
+  if (act === 'release') {
+    const s = a.sav.find(x => x.id === el.dataset.id); if (!s) return;
+    const v = savVal(s); a.bal[s.asset] = (a.bal[s.asset] || 0) + v; a.sav = a.sav.filter(x => x !== s);
+    logit('Savings', `Withdrew ${qty(v)} ${s.asset} (includes ${qty(v - s.principal)} interest)`); save(); toast('Savings withdrawn to your wallet', 'good'); render(); return;
+  }
+  if (act === 'togglelev') {
+    if (!a.leveraged && !confirm(`Leverage up to ${CFG.maxLevLeveraged}x can lose your whole margin quickly. Enable it?`)) return;
+    if (a.leveraged && a.pos.some(p => p.lev > CFG.maxLevStandard)) return toast(`Close positions above ${CFG.maxLevStandard}x first.`, 'bad');
+    a.leveraged = !a.leveraged; logit('Account', a.leveraged ? 'Leveraged account enabled' : 'Leveraged account disabled'); save(); render(); return;
+  }
+  if (act === 'skew') { a.skew += (+v) * DAY; save(); render(); toast(`Clock moved ${v} days ahead`); return; }
+  if (act === 'export') {
+    const blob = new Blob([JSON.stringify({user: DB.users[DB.session].name, email: DB.session, data: a}, null, 2)], {type: 'application/json'});
+    const l = document.createElement('a'); l.href = URL.createObjectURL(blob); l.download = 'my-data.json'; l.click(); return;
+  }
+  if (act === 'reset') { if (!confirm('Reset this account to empty? This cannot be undone.')) return; DB.data[DB.session] = newAcct(); save(); render(); return; }
+});
+
+document.addEventListener('change', e => {
+  const b = e.target.dataset && e.target.dataset.bind;
+  if (b === 'sym') { T.sym = e.target.value; render(); }
+});
+document.addEventListener('input', e => {
+  const f = e.target.closest && e.target.closest('form[data-form="fut"]'); if (!f) return;
+  T.lev = +f.lev.value; const lv = $('#levv'); if (lv) lv.textContent = T.lev + 'x';
+  const m = num(f.margin.value), p = price(T.sym), pv = $('#futprev');
+  if (pv && m > 0 && p) { const size = m * T.lev / p; pv.innerHTML = `Position ${usd(m * T.lev)} (${qty(size)} ${T.sym}) · liquidation near <b class="warn">${px(liqPx(T.fside, p, T.lev))}</b> · fee ${usd(m * T.lev * CFG.feeFut)}`; }
+});
+
+document.addEventListener('submit', async e => {
+  const f = e.target.closest('form[data-form]'); if (!f) return; e.preventDefault();
+  const kind = f.dataset.form, err = $('#err');
+  if (kind === 'signup' || kind === 'login') {
+    const email = f.email.value.trim().toLowerCase(), pw = f.pw.value, bad = m => { if (err) err.textContent = m; };
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return bad('Enter a valid email address.');
+    if (kind === 'signup') {
+      const name = f.name.value.trim();
+      if (!name) return bad('Enter your name.');
+      if (pw.length < 8) return bad('Password needs at least 8 characters.');
+      if (!f.ok.checked) return bad('Please confirm you understand the risks.');
+      if (DB.users[email]) return bad('That email already has an account. Log in instead.');
+      const salt = uid() + uid();
+      DB.users[email] = {name, salt, hash: await hashPw(pw, salt), created: Date.now()};
+      DB.data[email] = newAcct(); DB.session = email; save(); logit('Account', 'Account created'); save(); go('overview'); render(); return;
+    }
+    const u = DB.users[email];
+    if (!u || (await hashPw(pw, u.salt)) !== u.hash) return bad('Email or password is not right.');
+    DB.session = email; save(); go('overview'); render(); return;
+  }
+  const a = acct();
+  if (kind === 'spot') {
+    const amt = num(f.amt.value), m = price(T.sym), isBuy = T.side === 'buy';
+    if (!(amt > 0)) return toast('Enter an amount.', 'bad');
+    if (!m) return toast('No price yet. Try again in a moment.', 'bad');
+    if (T.type === 'market') {
+      if (isBuy) {
+        if (amt > (a.bal.USD || 0) + 1e-9) return toast('Not enough cash.', 'bad');
+        const q = amt * (1 - CFG.feeSpot) / m; a.bal.USD -= amt; a.bal[T.sym] = (a.bal[T.sym] || 0) + q;
+        logit('Buy', `Bought ${qty(q)} ${T.sym} at ${px(m)} for ${usd(amt)}`);
+      } else {
+        const q = amt / m, have = a.bal[T.sym] || 0;
+        if (q > have * 1.0000001) return toast(`You only hold ${qty(have)} ${T.sym}.`, 'bad');
+        const take = Math.min(q, have); a.bal[T.sym] = have - take; const got = take * m * (1 - CFG.feeSpot); a.bal.USD = (a.bal.USD || 0) + got;
+        logit('Sell', `Sold ${qty(take)} ${T.sym} at ${px(m)} for ${usd(got)}`);
+      }
+      toast(isBuy ? 'Order filled' : 'Order filled', 'good');
+    } else {
+      const lp = num(f.lp.value); if (!(lp > 0)) return toast('Enter a limit price.', 'bad');
+      if (isBuy) {
+        if (amt > (a.bal.USD || 0) + 1e-9) return toast('Not enough cash.', 'bad');
+        a.bal.USD -= amt; a.orders.push({id: uid(), sym: T.sym, side: 'buy', price: lp, qty: amt * (1 - CFG.feeSpot) / lp, reserve: amt});
+      } else {
+        const q = amt / lp, have = a.bal[T.sym] || 0;
+        if (q > have * 1.0000001) return toast(`You only hold ${qty(have)} ${T.sym}.`, 'bad');
+        const take = Math.min(q, have); a.bal[T.sym] = have - take; a.orders.push({id: uid(), sym: T.sym, side: 'sell', price: lp, qty: take, reserve: 0});
+      }
+      logit('Order', `Placed limit ${T.side} ${T.sym} at ${px(lp)}`); toast('Limit order placed', 'good');
+    }
+    save(); engine(); render(); return;
+  }
+  if (kind === 'fut') {
+    const marg = num(f.margin.value), m = price(T.sym), lev = T.lev;
+    if (!(marg > 0)) return toast('Enter the margin to use.', 'bad');
+    if (!m) return toast('No price yet. Try again in a moment.', 'bad');
+    if (lev > maxLev()) return toast(`Your limit is ${maxLev()}x.`, 'bad');
+    const fee = marg * lev * CFG.feeFut;
+    if (marg + fee > (a.bal.USD || 0) + 1e-9) return toast('Not enough cash for margin and fee.', 'bad');
+    const sl = f.sl.value ? num(f.sl.value) : null, tp = f.tp.value ? num(f.tp.value) : null, lg = T.fside === 'long';
+    if (sl && (lg ? sl >= m : sl <= m)) return toast('Stop loss is on the wrong side of the price.', 'bad');
+    if (tp && (lg ? tp <= m : tp >= m)) return toast('Take profit is on the wrong side of the price.', 'bad');
+    if (sl && (lg ? sl <= liqPx('long', m, lev) : sl >= liqPx('short', m, lev))) return toast('Stop loss is beyond the liquidation price.', 'bad');
+    a.bal.USD -= marg + fee;
+    a.pos.push({id: uid(), sym: T.sym, side: T.fside, lev, margin: marg, entry: m, size: marg * lev / m, sl, tp, t: now()});
+    logit('Futures', `Opened ${T.fside} ${T.sym} ${lev}x at ${px(m)} with ${usd(marg)} margin`); toast('Position opened', 'good'); save(); render(); return;
+  }
+  if (kind === 'sav') {
+    const p = CFG.products.find(x => x.id === f.dataset.pid), amt = num(f.amt.value);
+    if (!(amt > 0)) return toast('Enter an amount.', 'bad');
+    if (amt < p.min) return toast(`Minimum is ${p.min} ${p.asset}.`, 'bad');
+    if (amt > (a.bal[p.asset] || 0) + 1e-9) return toast(`Not enough ${p.asset} in your wallet.`, 'bad');
+    a.bal[p.asset] -= amt; a.sav.push({id: uid(), pid: p.id, asset: p.asset, principal: amt, start: now(), release: null});
+    logit('Savings', `Deposited ${qty(amt)} ${p.asset} into ${p.name} at ${p.apy}%`); toast('Deposit made. Interest starts now.', 'good'); save(); render(); return;
+  }
+});
+
+/* ---------- boot ---------- */
+if (/signup/.test(location.search) && !DB.session) location.hash = '#/signup';
+render();
+pull(); setInterval(pull, 5000);
+document.addEventListener('visibilitychange', () => { if (!document.hidden) pull(); });
+</script>
+</body>
+</html>
